@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Search, MapPin, Star, Users, Briefcase, Filter } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn, DISCIPLINE_LABELS, DISCIPLINE_COLORS, US_STATES } from "@/lib/utils";
@@ -37,12 +38,17 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export default function AgenciesBrowser() {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
-  const [discipline, setDiscipline] = useState<DisciplineType | "">("");
-  const [state, setState] = useState("");
+  const [discipline, setDiscipline] = useState<DisciplineType | "">(
+    (searchParams.get("discipline") as DisciplineType) ?? ""
+  );
+  const [state, setState] = useState(searchParams.get("state") ?? "");
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(
+    !!(searchParams.get("discipline") || searchParams.get("state"))
+  );
 
   useEffect(() => {
     const timeout = setTimeout(fetchAgencies, 300);
