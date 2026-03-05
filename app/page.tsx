@@ -12,6 +12,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import HeroSearch from "@/components/HeroSearch";
 
 const DISCIPLINES = [
   { label: "Law Enforcement", emoji: "👮", href: "/agencies?discipline=police", count: "18,000+" },
@@ -95,14 +96,7 @@ export default function LandingPage() {
             </div>
 
             {/* Search bar */}
-            <div className="relative max-w-xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search your department..."
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm backdrop-blur"
-              />
-            </div>
+            <HeroSearch />
           </div>
         </div>
       </section>

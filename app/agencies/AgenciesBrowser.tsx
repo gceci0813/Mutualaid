@@ -39,7 +39,7 @@ function StarRating({ rating }: { rating: number }) {
 
 export default function AgenciesBrowser() {
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [discipline, setDiscipline] = useState<DisciplineType | "">(
     (searchParams.get("discipline") as DisciplineType) ?? ""
   );
