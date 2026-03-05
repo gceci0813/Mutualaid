@@ -29,10 +29,10 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const protectedRoutes = ["/reviews/new", "/forum/new", "/jobs/post", "/dashboard"];
-  const isProtected = protectedRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route)
-  );
+  const protectedPrefixes = ["/forum/new", "/jobs/post", "/dashboard"];
+  const isProtected =
+    protectedPrefixes.some((route) => request.nextUrl.pathname.startsWith(route)) ||
+    request.nextUrl.pathname.endsWith("/reviews/new");
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();

@@ -7,10 +7,16 @@ import { Shield, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
 
+function getSafeRedirect(next: string | null): string {
+  if (!next) return "/dashboard";
+  if (next.startsWith("/") && !next.startsWith("//")) return next;
+  return "/dashboard";
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/dashboard";
+  const next = getSafeRedirect(searchParams.get("next"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
