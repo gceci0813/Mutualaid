@@ -145,7 +145,7 @@ export default function VerifyOfficerPage() {
             <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
               <span className="text-red-600 font-bold text-[10px]">3</span>
             </div>
-            Your reviews get a{" "}<strong className="text-slate-700">✓ Verified Officer</strong>{" "}badge — your identity stays anonymous
+            <span>Your reviews get a <strong className="text-slate-700">✓ Verified Officer</strong> badge — your identity stays anonymous</span>
           </div>
         </div>
 
