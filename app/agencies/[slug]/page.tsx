@@ -8,6 +8,10 @@ import {
 import { cn, DISCIPLINE_LABELS, DISCIPLINE_COLORS } from "@/lib/utils";
 import type { Agency, Review } from "@/types";
 
+interface ReviewWithVerified extends Review {
+  is_verified_officer: boolean;
+}
+
 async function getAgency(slug: string): Promise<Agency | null> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -18,15 +22,20 @@ async function getAgency(slug: string): Promise<Agency | null> {
   return data as Agency | null;
 }
 
-async function getReviews(agencyId: string): Promise<Review[]> {
+async function getReviews(agencyId: string): Promise<ReviewWithVerified[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("reviews")
-    .select("*")
+    .select("*, user_profiles(is_verified_officer)")
     .eq("agency_id", agencyId)
     .order("created_at", { ascending: false })
     .limit(10);
-  return (data as Review[]) ?? [];
+  if (!data) return [];
+  return data.map((r) => ({
+    ...r,
+    is_verified_officer:
+      (r.user_profiles as { is_verified_officer: boolean } | null)?.is_verified_officer ?? false,
+  }));
 }
 
 function RatingBar({ label, value }: { label: string; value: number }) {
@@ -274,7 +283,7 @@ export default async function AgencyPage({
   );
 }
 
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({ review }: { review: ReviewWithVerified }) {
   const recommend = review.recommend;
   const date = new Date(review.created_at).toLocaleDateString("en-US", {
     month: "short",
@@ -302,6 +311,12 @@ function ReviewCard({ review }: { review: Review }) {
             </div>
             <span className="text-xs text-slate-400">·</span>
             <span className="text-xs text-slate-500">{review.anonymous_alias}</span>
+            {review.is_verified_officer && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5">
+                <Shield className="w-2.5 h-2.5" />
+                Verified Officer
+              </span>
+            )}
             <span className="text-xs text-slate-400">·</span>
             <span className="text-xs text-slate-400">{date}</span>
           </div>

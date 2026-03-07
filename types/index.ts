@@ -115,7 +115,18 @@ export interface UserProfile {
   discipline?: DisciplineType;
   agency_id?: string;
   is_department_rep: boolean;
+  is_verified_officer: boolean;
+  verified_agency_id?: string;
   created_at: string;
+}
+
+export interface AgencyAccessCode {
+  id: string;
+  agency_id: string;
+  code: string;
+  created_at: string;
+  used_by_user_id: string | null;
+  used_at: string | null;
 }
 
 export type SortOption = "recent" | "top" | "most_reviewed";

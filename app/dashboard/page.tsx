@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Shield, Search, MessageSquare, Briefcase, ChevronRight } from "lucide-react";
+import { Shield, Search, MessageSquare, Briefcase, ChevronRight, CheckCircle } from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -11,15 +11,22 @@ export default async function DashboardPage() {
 
   const alias = user.user_metadata?.anonymous_alias ?? "Anonymous";
 
-  const { count: reviewCount } = await supabase
-    .from("reviews")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id);
+  const [
+    { count: reviewCount },
+    { count: threadCount },
+    { data: profile },
+  ] = await Promise.all([
+    supabase.from("reviews").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase.from("threads").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase
+      .from("user_profiles")
+      .select("is_verified_officer, verified_agency_id, agencies(name)")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
-  const { count: threadCount } = await supabase
-    .from("threads")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id);
+  const isVerified = profile?.is_verified_officer ?? false;
+  const verifiedAgencyName = (profile?.agencies as unknown as { name: string } | null)?.name ?? null;
 
   const quickLinks = [
     {
@@ -55,6 +62,34 @@ export default async function DashboardPage() {
           <p className="text-xs text-slate-400 mt-0.5">Your identity is protected — only your alias is visible</p>
         </div>
       </div>
+
+      {/* Verification status */}
+      {isVerified ? (
+        <div className="card p-4 mb-6 flex items-center gap-3 border-blue-100 bg-blue-50">
+          <CheckCircle className="w-5 h-5 text-blue-600 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-blue-800">Verified Officer</p>
+            {verifiedAgencyName && (
+              <p className="text-xs text-blue-600 mt-0.5">{verifiedAgencyName}</p>
+            )}
+          </div>
+          <span className="badge bg-blue-100 text-blue-700 text-xs">✓ Active</span>
+        </div>
+      ) : (
+        <Link
+          href="/dashboard/verify"
+          className="card p-4 mb-6 flex items-center gap-3 hover:border-red-200 hover:shadow-sm transition-all group"
+        >
+          <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-red-50 transition-colors">
+            <Shield className="w-4 h-4 text-slate-400 group-hover:text-red-600 transition-colors" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">Get your Verified Officer badge</p>
+            <p className="text-xs text-slate-400">Enter the access code from your department</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-400 transition-colors" />
+        </Link>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-6">

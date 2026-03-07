@@ -23,7 +23,6 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
@@ -43,29 +42,15 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center gap-1">
             {NAV_LINKS.map((link) =>
               link.children ? (
-                <div key={link.label} className="relative">
-                  <button
-                    className={cn(
-                      "btn-ghost",
-                      openDropdown === link.label && "bg-slate-100"
-                    )}
-                    onMouseEnter={() => setOpenDropdown(link.label)}
-                    onMouseLeave={() => setOpenDropdown(null)}
-                    onClick={() =>
-                      setOpenDropdown(
-                        openDropdown === link.label ? null : link.label
-                      )
-                    }
-                  >
+                // Pure CSS hover — no JS delay, no gap issues
+                <div key={link.label} className="group relative">
+                  <button className="btn-ghost group-hover:bg-slate-100">
                     {link.label}
-                    <ChevronDown className="w-3.5 h-3.5" />
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" />
                   </button>
-                  {openDropdown === link.label && (
-                    <div
-                      className="absolute top-full left-0 mt-1 w-52 card py-1 z-50"
-                      onMouseEnter={() => setOpenDropdown(link.label)}
-                      onMouseLeave={() => setOpenDropdown(null)}
-                    >
+                  {/* pt-1 keeps visual gap as padding so hover zone is unbroken */}
+                  <div className="absolute top-full left-0 w-52 pt-1 z-50 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-100">
+                    <div className="card py-1 shadow-lg">
                       {link.children.map((child) => (
                         <Link
                           key={child.href}
@@ -76,7 +61,7 @@ export default function Navbar() {
                         </Link>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               ) : (
                 <Link key={link.href} href={link.href} className="btn-ghost">
