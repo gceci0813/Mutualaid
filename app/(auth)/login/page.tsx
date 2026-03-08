@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Shield, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Shield, Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
 
@@ -13,30 +13,68 @@ function getSafeRedirect(next: string | null): string {
   return "/dashboard";
 }
 
+function deriveCredentials(phrase: string): { email: string; password: string } {
+  const encoded  = btoa(phrase.trim().toLowerCase()).replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+  const password = btoa(`mutualaid::seed::${phrase.trim()}`).slice(0, 48);
+  return { email: `anon-${encoded}@mutualaid.anon`, password };
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = getSafeRedirect(searchParams.get("next"));
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loginMode, setLoginMode] = useState<"email" | "seed">("email");
 
-  async function handleLogin(e: React.FormEvent) {
+  // Email state
+  const [email, setEmail]     = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw]   = useState(false);
+
+  // Seed phrase state
+  const [seedPhrase, setSeedPhrase] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+
+  async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     const supabase = createClient();
-    const { error: loginError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (loginError) {
       setError("Invalid email or password.");
+      setLoading(false);
+      return;
+    }
+
+    router.push(next);
+    router.refresh();
+  }
+
+  async function handleSeedLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!seedPhrase.trim()) return;
+    const words = seedPhrase.trim().split(/\s+/);
+    if (words.length < 12) {
+      setError("Please enter all 12 words of your seed phrase.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+
+    const { email: derivedEmail, password: derivedPassword } = deriveCredentials(seedPhrase);
+    const supabase = createClient();
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email: derivedEmail,
+      password: derivedPassword,
+    });
+
+    if (loginError) {
+      setError("Seed phrase not recognized. Check each word carefully and try again.");
       setLoading(false);
       return;
     }
@@ -58,66 +96,122 @@ function LoginForm() {
             </span>
           </Link>
           <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
-          <p className="text-slate-500 text-sm mt-2">
-            Sign in to your anonymous account
-          </p>
+          <p className="text-slate-500 text-sm mt-2">Sign in to your anonymous account</p>
+        </div>
+
+        {/* Mode toggle */}
+        <div className="flex bg-slate-100 rounded-lg p-1 mb-6">
+          <button
+            onClick={() => { setLoginMode("email"); setError(""); }}
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+              loginMode === "email"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            Email / Password
+          </button>
+          <button
+            onClick={() => { setLoginMode("seed"); setError(""); }}
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-1.5 ${
+              loginMode === "seed"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <Lock className="w-3.5 h-3.5" />
+            Seed Phrase
+          </button>
         </div>
 
         <div className="card p-8">
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="label" htmlFor="email">Email address</label>
-              <input
-                id="email"
-                type="email"
-                className="input"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="label mb-0" htmlFor="password">Password</label>
-                <Link href="/forgot-password" className="text-xs text-red-600 hover:text-red-700">
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
+          {loginMode === "email" ? (
+            <form onSubmit={handleEmailLogin} className="space-y-4">
+              <div>
+                <label className="label" htmlFor="email">Email address</label>
                 <input
-                  id="password"
-                  type={showPw ? "text" : "password"}
-                  className="input pr-12"
-                  placeholder="Your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="email"
+                  type="email"
+                  className="input"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  autoComplete="current-password"
+                  autoComplete="email"
                 />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  onClick={() => setShowPw(!showPw)}
-                >
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
-            </div>
 
-            {error && (
-              <div className="flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                {error}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="label mb-0" htmlFor="password">Password</label>
+                  <Link href="/forgot-password" className="text-xs text-red-600 hover:text-red-700">
+                    Forgot password?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPw ? "text" : "password"}
+                    className="input pr-12"
+                    placeholder="Your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    onClick={() => setShowPw(!showPw)}
+                  >
+                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            )}
 
-            <button type="submit" className="btn-primary w-full justify-center py-3" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
+              {error && (
+                <div className="flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  {error}
+                </div>
+              )}
+
+              <button type="submit" className="btn-primary w-full justify-center py-3" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSeedLogin} className="space-y-4">
+              <div>
+                <label className="label" htmlFor="seed">Your 12-word seed phrase</label>
+                <textarea
+                  id="seed"
+                  className="input resize-none h-28 font-mono text-sm"
+                  placeholder="word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
+                  value={seedPhrase}
+                  onChange={(e) => setSeedPhrase(e.target.value)}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                />
+                <p className="text-xs text-slate-400 mt-1.5">
+                  Enter all 12 words separated by spaces, exactly as you wrote them down.
+                </p>
+              </div>
+
+              {error && (
+                <div className="flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  {error}
+                </div>
+              )}
+
+              <button type="submit" className="btn-primary w-full justify-center py-3" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In with Seed Phrase"}
+              </button>
+            </form>
+          )}
 
           <p className="text-center text-sm text-slate-500 mt-5">
             Don&apos;t have an account?{" "}
