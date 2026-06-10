@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Shield, Search, MessageSquare, Briefcase, ChevronRight, CheckCircle } from "lucide-react";
+import { Shield, Search, MessageSquare, Briefcase, ChevronRight, CheckCircle, Star, Building2 } from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -20,13 +20,14 @@ export default async function DashboardPage() {
     supabase.from("threads").select("*", { count: "exact", head: true }).eq("user_id", user.id),
     supabase
       .from("user_profiles")
-      .select("is_verified_officer, verified_agency_id, agencies(name)")
+      .select("is_verified_officer, verified_agency_id, subscription_tier, agencies(name)")
       .eq("id", user.id)
       .single(),
   ]);
 
   const isVerified = profile?.is_verified_officer ?? false;
   const verifiedAgencyName = (profile?.agencies as unknown as { name: string } | null)?.name ?? null;
+  const isPremium = (profile as unknown as { subscription_tier?: string } | null)?.subscription_tier === "premium";
 
   const quickLinks = [
     {
@@ -123,6 +124,41 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* Agency dashboard link */}
+      <div className="mt-4">
+        <Link
+          href="/dashboard/agency"
+          className="card p-4 flex items-center gap-4 hover:border-red-200 hover:shadow-sm transition-all group"
+        >
+          <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-red-50 transition-colors">
+            <Building2 className="w-5 h-5 text-slate-500 group-hover:text-red-600 transition-colors" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-slate-900 text-sm">Agency Dashboard</p>
+            <p className="text-xs text-slate-500">Manage your claimed agency profiles</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-400 transition-colors" />
+        </Link>
+      </div>
+
+      {/* Premium upgrade CTA */}
+      {!isPremium && (
+        <div className="mt-6 card p-5 border-amber-200 bg-amber-50/50">
+          <div className="flex items-start gap-3">
+            <Star className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-slate-900 text-sm mb-1">Unlock Premium</p>
+              <p className="text-xs text-slate-500 mb-3">
+                Salary analytics, advanced filtering, ad-free experience, and more — $4.99/month.
+              </p>
+              <Link href="/pricing" className="btn-primary text-sm py-1.5">
+                View Plans
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

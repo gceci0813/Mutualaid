@@ -19,6 +19,7 @@ const NAV_LINKS = [
   },
   { label: "Forum", href: "/forum" },
   { label: "Jobs", href: "/jobs" },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 export default function Navbar() {

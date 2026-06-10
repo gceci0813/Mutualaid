@@ -45,6 +45,7 @@ export default function PostJobPage() {
   const [deadline, setDeadline] = useState("");
   const [applyUrl, setApplyUrl] = useState("");
 
+  const [isFeatured, setIsFeatured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -98,6 +99,10 @@ export default function PostJobPage() {
         external_apply_url: applyUrl.trim() || null,
         deadline: deadline || null,
         active: true,
+        is_featured: isFeatured,
+        featured_until: isFeatured
+          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          : null,
       })
       .select()
       .single();
@@ -338,6 +343,36 @@ export default function PostJobPage() {
           </div>
         </div>
 
+        {/* Featured upgrade */}
+        <div
+          className={`card p-5 cursor-pointer transition-all ${
+            isFeatured ? "border-amber-400 bg-amber-50" : "hover:border-slate-300"
+          }`}
+          onClick={() => setIsFeatured(!isFeatured)}
+        >
+          <div className="flex items-start gap-3">
+            <div className={`w-5 h-5 rounded border-2 mt-0.5 flex items-center justify-center shrink-0 transition-colors ${
+              isFeatured ? "bg-amber-500 border-amber-500" : "border-slate-300"
+            }`}>
+              {isFeatured && <span className="text-white text-xs font-bold">✓</span>}
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                ⭐ Feature this listing — <span className="text-amber-600">$99</span>
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Featured listings appear at the top of all search results for 30 days,
+                highlighted with a gold badge. Get 3–5× more applicant views.
+              </p>
+            </div>
+          </div>
+          {isFeatured && (
+            <p className="text-xs text-amber-700 mt-3 pl-8">
+              You&apos;ll be invoiced $99 after your listing is reviewed and approved.
+            </p>
+          )}
+        </div>
+
         {error && (
           <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
             <AlertCircle className="w-4 h-4" />
@@ -347,7 +382,7 @@ export default function PostJobPage() {
 
         <div className="flex justify-end">
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Posting..." : "Post Job Listing"}
+            {loading ? "Posting..." : isFeatured ? "Post Featured Listing" : "Post Job Listing"}
           </button>
         </div>
       </form>

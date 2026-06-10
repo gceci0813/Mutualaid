@@ -7,6 +7,7 @@ import { ChevronLeft, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { ThreadCategory, DisciplineType } from "@/types";
+import { VerificationGate } from "@/components/ui/VerificationGate";
 
 const CATEGORIES = [
   { value: "general",       label: "General",         emoji: "💬" },
@@ -80,6 +81,7 @@ export default function NewThreadPage() {
   }
 
   return (
+    <VerificationGate>
     <div className="page-container py-10 max-w-2xl">
       <Link
         href="/forum"
@@ -183,5 +185,6 @@ export default function NewThreadPage() {
         </div>
       </form>
     </div>
+    </VerificationGate>
   );
 }

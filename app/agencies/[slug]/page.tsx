@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
   MapPin, Star, Users, Briefcase, MessageSquare,
-  ExternalLink, Shield, ChevronRight, ThumbsUp
+  ExternalLink, Shield, ChevronRight, ThumbsUp, Building2
 } from "lucide-react";
 import { cn, DISCIPLINE_LABELS, DISCIPLINE_COLORS } from "@/lib/utils";
 import type { Agency, Review } from "@/types";
@@ -277,6 +277,33 @@ export default async function AgencyPage({
               </div>
             </div>
           </div>
+
+          {/* Claim / Claimed */}
+          {(agency as Agency & { is_claimed?: boolean }).is_claimed ? (
+            <div className="card p-5 border-blue-100 bg-blue-50">
+              <div className="flex items-center gap-2 mb-1">
+                <Building2 className="w-4 h-4 text-blue-600" />
+                <p className="text-sm font-semibold text-blue-800">Official Agency Account</p>
+              </div>
+              <p className="text-xs text-blue-600">
+                This agency is actively managed by a verified department representative.
+              </p>
+            </div>
+          ) : (
+            <div className="card p-5 border-dashed">
+              <p className="text-sm font-semibold text-slate-700 mb-1">Are you from this agency?</p>
+              <p className="text-xs text-slate-500 mb-3">
+                Claim your profile to respond to reviews, view analytics, and attract candidates.
+              </p>
+              <Link
+                href={`/agencies/${slug}/claim`}
+                className="btn-secondary w-full justify-center text-sm gap-1.5"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                Claim This Agency
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

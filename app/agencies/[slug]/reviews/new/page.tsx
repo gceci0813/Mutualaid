@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Star, ChevronLeft, AlertCircle, CheckCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { VerificationGate } from "@/components/ui/VerificationGate";
 
 const RATING_CATEGORIES = [
   { key: "rating_overall",     label: "Overall Rating",      required: true  },
@@ -165,6 +166,7 @@ export default function NewReviewPage({ params }: { params: Params }) {
   }
 
   return (
+    <VerificationGate>
     <div className="page-container py-10 max-w-3xl">
       <Link
         href={`/agencies/${slug}`}
@@ -346,5 +348,6 @@ export default function NewReviewPage({ params }: { params: Params }) {
         </div>
       </form>
     </div>
+    </VerificationGate>
   );
 }

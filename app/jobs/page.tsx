@@ -37,18 +37,26 @@ function timeAgo(dateStr: string): string {
   return `${weeks} week${weeks !== 1 ? "s" : ""} ago`;
 }
 
-function JobCard({ job }: { job: Job & { agencies?: { name: string; city: string; state_abbr: string } } }) {
+function JobCard({ job }: { job: Job & { agencies?: { name: string; city: string; state_abbr: string }; is_featured?: boolean } }) {
   const agency = job.agencies;
   const salaryText = formatSalary(job.salary_min, job.salary_max, job.salary_type);
 
   return (
     <Link
       href={`/jobs/${job.id}`}
-      className="card p-5 block hover:border-red-200 hover:shadow-md transition-all group"
+      className={cn(
+        "card p-5 block hover:border-red-200 hover:shadow-md transition-all group",
+        job.is_featured && "border-amber-200 bg-amber-50/40"
+      )}
     >
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
+            {job.is_featured && (
+              <span className="badge bg-amber-100 text-amber-700 flex items-center gap-1">
+                ⭐ Featured
+              </span>
+            )}
             <span className={cn("badge", DISCIPLINE_COLORS[job.discipline])}>
               {DISCIPLINE_LABELS[job.discipline]}
             </span>
@@ -106,7 +114,7 @@ function JobCard({ job }: { job: Job & { agencies?: { name: string; city: string
 }
 
 export default function JobsPage() {
-  const [jobs, setJobs] = useState<(Job & { agencies?: { name: string; city: string; state_abbr: string } })[]>([]);
+  const [jobs, setJobs] = useState<(Job & { agencies?: { name: string; city: string; state_abbr: string }; is_featured?: boolean })[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [discipline, setDiscipline] = useState<DisciplineType | "">("");
@@ -127,6 +135,7 @@ export default function JobsPage() {
       .from("jobs")
       .select("*, agencies(name, city, state_abbr)")
       .eq("active", true)
+      .order("is_featured", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(40);
 
@@ -228,13 +237,32 @@ export default function JobsPage() {
           <p className="font-medium text-slate-600">No jobs found</p>
           <p className="text-sm mt-1">Try adjusting your filters</p>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
-      )}
+      ) : (() => {
+        const featured = jobs.filter((j) => j.is_featured);
+        const regular = jobs.filter((j) => !j.is_featured);
+        return (
+          <div className="space-y-6">
+            {featured.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                  ⭐ Featured Listings
+                </p>
+                <div className="space-y-3">
+                  {featured.map((job) => <JobCard key={job.id} job={job} />)}
+                </div>
+                {regular.length > 0 && (
+                  <div className="border-t border-slate-200 mt-6 pt-1">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3 mt-3">All Listings</p>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="space-y-3">
+              {regular.map((job) => <JobCard key={job.id} job={job} />)}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

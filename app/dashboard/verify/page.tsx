@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Shield, CheckCircle, AlertCircle, ArrowLeft, Lock } from "lucide-react";
+import { Shield, CheckCircle, AlertCircle, ArrowLeft, Lock, Mail } from "lucide-react";
 
 export default function VerifyOfficerPage() {
   const [code, setCode] = useState("");
@@ -189,6 +189,19 @@ export default function VerifyOfficerPage() {
             {loading ? "Verifying..." : "Verify My Badge"}
           </button>
         </form>
+
+        <div className="mt-6 pt-6 border-t border-slate-100">
+          <p className="text-xs text-slate-500 text-center mb-3">
+            No access code? Use your official work email instead.
+          </p>
+          <Link
+            href="/dashboard/verify-email"
+            className="btn-secondary w-full justify-center gap-2"
+          >
+            <Mail className="w-4 h-4" />
+            Verify via .gov / Work Email
+          </Link>
+        </div>
       </div>
     </div>
   );
