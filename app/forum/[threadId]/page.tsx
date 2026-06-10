@@ -53,12 +53,12 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
       <div className="page-header">
         <div className="page-header-inner max-w-3xl">
           <Link href="/forum"
-            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-300 text-sm font-medium mb-5 transition-colors">
+            className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-700 text-sm font-medium mb-5 transition-colors">
             <ChevronLeft className="w-4 h-4" />Back to forum
           </Link>
 
           {t.pinned && (
-            <div className="flex items-center gap-1.5 text-amber-400 text-sm font-semibold mb-3">
+            <div className="flex items-center gap-1.5 text-amber-600 text-sm font-semibold mb-3">
               <Pin className="w-4 h-4" />Pinned thread
             </div>
           )}
@@ -67,13 +67,13 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
             <span className={`badge text-xs ${catColor}`}>{catLabel}</span>
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-black text-white leading-tight mb-4 tracking-tight">{t.title}</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-4 tracking-tight">{t.title}</h1>
 
-          <div className="flex items-center gap-3 text-sm text-slate-400 flex-wrap">
-            <span className="font-semibold text-slate-300">{t.anonymous_alias}</span>
-            <span className="text-slate-600">·</span>
+          <div className="flex items-center gap-3 text-sm text-slate-500 flex-wrap">
+            <span className="font-semibold text-slate-700">{t.anonymous_alias}</span>
+            <span className="text-slate-300">·</span>
             <span>{timeAgo(t.created_at)}</span>
-            <span className="text-slate-600">·</span>
+            <span className="text-slate-300">·</span>
             <span className="flex items-center gap-1">
               <ThumbsUp className="w-3.5 h-3.5" />{t.upvotes}
             </span>

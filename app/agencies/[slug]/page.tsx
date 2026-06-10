@@ -51,7 +51,7 @@ function StarDisplay({ rating, size = "sm" }: { rating: number; size?: "sm" | "l
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
-        <Star key={s} className={cn(sz, s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-slate-600 fill-slate-600")} />
+        <Star key={s} className={cn(sz, s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-slate-200 fill-slate-200")} />
       ))}
     </div>
   );
@@ -86,9 +86,9 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
         <div className="page-header-inner">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-sm mb-5">
-            <Link href="/agencies" className="text-slate-500 hover:text-slate-300 transition-colors">Agencies</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-            <span className="text-slate-300 font-medium">{agency.name}</span>
+            <Link href="/agencies" className="text-slate-400 hover:text-slate-600 transition-colors">Agencies</Link>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+            <span className="text-slate-700 font-medium">{agency.name}</span>
           </nav>
 
           <div className="flex items-start justify-between gap-6 flex-wrap">
@@ -98,13 +98,13 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
                   {DISCIPLINE_LABELS[agency.discipline]}
                 </span>
                 {agency.verified && (
-                  <span className="badge bg-blue-900/40 text-blue-300 border border-blue-700/30">
+                  <span className="badge bg-blue-50 text-blue-700 border border-blue-100">
                     <Shield className="w-3 h-3 mr-1" />Verified
                   </span>
                 )}
               </div>
-              <h1 className="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight">{agency.name}</h1>
-              <p className="flex items-center gap-1.5 text-slate-400 text-sm">
+              <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-2 tracking-tight">{agency.name}</h1>
+              <p className="flex items-center gap-1.5 text-slate-500 text-sm">
                 <MapPin className="w-4 h-4" />
                 {agency.city}, {agency.state}
                 {agency.county ? `, ${agency.county} County` : ""}
@@ -113,10 +113,10 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
 
             <div className="flex items-center gap-4 shrink-0 flex-wrap">
               {ratings && (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                  <div className="text-4xl font-black text-white mb-1">{ratings.overall.toFixed(1)}</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                  <div className="text-4xl font-black text-slate-900 mb-1">{ratings.overall.toFixed(1)}</div>
                   <StarDisplay rating={ratings.overall} size="lg" />
-                  <div className="text-xs text-slate-500 mt-1.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</div>
+                  <div className="text-xs text-slate-400 mt-1.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</div>
                 </div>
               )}
               <Link href={`/agencies/${slug}/reviews/new`} className="btn-primary shrink-0 self-start">

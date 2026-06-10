@@ -32,16 +32,16 @@ export default async function DashboardPage() {
 
   return (
     <>
-      {/* Dark page header */}
+      {/* Light page header */}
       <div className="page-header">
         <div className="page-header-inner">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
-              <User className="w-5 h-5 text-red-400" />
+            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+              <User className="w-5 h-5 text-red-600" />
             </div>
             <div>
               <p className="text-slate-400 text-sm">Signed in as</p>
-              <h1 className="text-2xl font-black text-white tracking-tight">{alias}</h1>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">{alias}</h1>
             </div>
           </div>
           <p className="text-slate-500 text-sm mt-1">Your identity is fully protected — only your alias is visible to others.</p>
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
 
         {/* Premium CTA */}
         {!isPremium && (
-          <div className="card p-5 bg-gradient-to-br from-slate-950 to-slate-900 border-slate-800">
+          <div className="card p-5 bg-slate-900 border-slate-800">
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 bg-red-500/20 rounded-xl flex items-center justify-center shrink-0">
                 <Star className="w-4 h-4 text-red-400" />

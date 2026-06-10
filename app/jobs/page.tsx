@@ -109,13 +109,13 @@ export default function JobsPage() {
       <div className="page-header">
         <div className="page-header-inner">
           <div className="flex items-center gap-2 mb-3">
-            <Briefcase className="w-4 h-4 text-red-400" />
-            <span className="text-red-400 text-sm font-bold uppercase tracking-widest">Job Board</span>
+            <Briefcase className="w-4 h-4 text-red-600" />
+            <span className="text-red-600 text-sm font-bold uppercase tracking-widest">Job Board</span>
           </div>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Open Positions</h1>
-              <p className="text-slate-400 text-lg max-w-xl">Public safety job openings at agencies across the United States.</p>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-3 tracking-tight">Open Positions</h1>
+              <p className="text-slate-500 text-lg max-w-xl">Public safety job openings at agencies across the United States.</p>
             </div>
             <Link href="/jobs/post" className="btn-primary self-end shrink-0"><Plus className="w-4 h-4" />Post a Job</Link>
           </div>

@@ -108,13 +108,13 @@ export default function ForumPage() {
       <div className="page-header">
         <div className="page-header-inner">
           <div className="flex items-center gap-2 mb-3">
-            <MessageSquare className="w-4 h-4 text-red-400" />
-            <span className="text-red-400 text-sm font-bold uppercase tracking-widest">Community</span>
+            <MessageSquare className="w-4 h-4 text-red-600" />
+            <span className="text-red-600 text-sm font-bold uppercase tracking-widest">Community</span>
           </div>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Community Forum</h1>
-              <p className="text-slate-400 text-lg max-w-xl">Anonymous discussions on salary, mental health, culture, gear, and more.</p>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-3 tracking-tight">Community Forum</h1>
+              <p className="text-slate-500 text-lg max-w-xl">Anonymous discussions on salary, mental health, culture, gear, and more.</p>
             </div>
             <Link href="/forum/new" className="btn-primary self-end shrink-0"><Plus className="w-4 h-4" />New Thread</Link>
           </div>
@@ -130,7 +130,7 @@ export default function ForumPage() {
                 {CATEGORIES.map((cat) => (
                   <button key={cat.value} onClick={() => setCategory(cat.value as ThreadCategory | "")}
                     className={cn("w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors text-left",
-                      category === cat.value ? "bg-slate-950 text-white font-semibold" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900")}>
+                      category === cat.value ? "bg-red-600 text-white font-semibold" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900")}>
                     <span>{cat.emoji}</span>{cat.label}
                   </button>
                 ))}
@@ -148,7 +148,7 @@ export default function ForumPage() {
                 {SORT_OPTIONS.map((opt) => (
                   <button key={opt.value} onClick={() => setSort(opt.value)}
                     className={cn("flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors",
-                      sort === opt.value ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-100")}>
+                      sort === opt.value ? "bg-red-600 text-white" : "text-slate-500 hover:bg-slate-100")}>
                     <opt.icon className="w-3.5 h-3.5" />{opt.label}
                   </button>
                 ))}

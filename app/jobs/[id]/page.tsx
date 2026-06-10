@@ -36,7 +36,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       <div className="page-header">
         <div className="page-header-inner">
           <Link href="/jobs"
-            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-300 text-sm font-medium mb-5 transition-colors">
+            className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-700 text-sm font-medium mb-5 transition-colors">
             <ChevronLeft className="w-4 h-4" />Back to jobs
           </Link>
 
@@ -44,41 +44,41 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             <div>
               <div className="flex items-center gap-2 mb-3 flex-wrap">
                 {job.is_featured && (
-                  <span className="badge bg-amber-900/40 text-amber-300 border border-amber-700/30 flex items-center gap-1">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />Featured
+                  <span className="badge bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-amber-500 text-amber-500" />Featured
                   </span>
                 )}
                 <span className={cn("badge", DISCIPLINE_COLORS[job.discipline])}>
                   {DISCIPLINE_LABELS[job.discipline]}
                 </span>
-                <span className="badge bg-slate-700/50 text-slate-300 capitalize border border-slate-600/30">
+                <span className="badge bg-slate-100 text-slate-600 capitalize">
                   {job.employment_type.replace("_", " ")}
                 </span>
               </div>
 
-              <h1 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">{job.title}</h1>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-2 tracking-tight">{job.title}</h1>
 
-              <div className="flex items-center gap-2 text-slate-300 font-semibold mb-3">
-                <Building2 className="w-4 h-4 text-slate-500" />
-                <Link href={`/agencies/${agency.slug}`} className="hover:text-red-400 transition-colors">
+              <div className="flex items-center gap-2 text-slate-700 font-semibold mb-3">
+                <Building2 className="w-4 h-4 text-slate-400" />
+                <Link href={`/agencies/${agency.slug}`} className="hover:text-red-600 transition-colors">
                   {agency.name}
                 </Link>
               </div>
 
-              <div className="flex items-center gap-4 text-sm text-slate-400 flex-wrap">
+              <div className="flex items-center gap-4 text-sm text-slate-500 flex-wrap">
                 <span className="flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5" />{agency.city}, {agency.state_abbr}
                 </span>
                 {salaryText !== "Salary not listed" && (
-                  <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                  <span className="flex items-center gap-1.5 text-emerald-600 font-semibold">
                     <DollarSign className="w-3.5 h-3.5" />{salaryText}
                   </span>
                 )}
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5 text-slate-500">
                   <Clock className="w-3.5 h-3.5" />{timeAgo(job.created_at)}
                 </span>
                 {job.deadline && (
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 text-slate-500">
                     <CalendarDays className="w-3.5 h-3.5" />Apply by{" "}
                     {new Date(job.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </span>

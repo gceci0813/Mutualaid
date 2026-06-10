@@ -11,15 +11,14 @@ export const metadata: Metadata = {
 export default function AgenciesPage() {
   return (
     <>
-      {/* Dark page header */}
       <div className="page-header">
         <div className="page-header-inner">
           <div className="flex items-center gap-2 mb-3">
-            <Search className="w-4 h-4 text-red-400" />
-            <span className="text-red-400 text-sm font-bold uppercase tracking-widest">Agency Search</span>
+            <Search className="w-4 h-4 text-red-600" />
+            <span className="text-red-600 text-sm font-bold uppercase tracking-widest">Agency Search</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Browse Agencies</h1>
-          <p className="text-slate-400 text-lg max-w-xl">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-3 tracking-tight">Browse Agencies</h1>
+          <p className="text-slate-500 text-lg max-w-xl">
             Search 66,000+ public safety agencies across the United States. See ratings, reviews, and open positions.
           </p>
         </div>

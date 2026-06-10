@@ -88,13 +88,14 @@
     @apply text-3xl font-bold text-slate-900 tracking-tight;
   }
 
-  /* ── Dark page headers (sub-hero bands) ──────────── */
+  /* ── Light page headers (sub-hero bands) ──────────── */
   .page-header {
-    @apply bg-slate-950 text-white;
+    @apply bg-white border-b border-slate-100;
+    border-top: 3px solid #dc2626;
   }
 
   .page-header-inner {
-    @apply page-container py-12 md:py-16;
+    @apply page-container py-10 md:py-12;
   }
 }
 

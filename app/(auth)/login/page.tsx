@@ -26,16 +26,16 @@ const TRUST_ITEMS = [
 
 function LeftPanel() {
   return (
-    <div className="hidden lg:flex lg:w-[46%] bg-slate-950 flex-col justify-between p-12 relative overflow-hidden shrink-0">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-600/8 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-72 h-72 bg-red-800/8 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+    <div className="hidden lg:flex lg:w-[46%] bg-gradient-to-br from-red-600 to-red-700 flex-col justify-between p-12 relative overflow-hidden shrink-0">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-72 h-72 bg-black/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
       <Link href="/" className="flex items-center gap-2.5 relative z-10">
         <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-lg">
           <Shield className="w-5 h-5 text-white" />
         </div>
         <span className="text-xl font-black text-white tracking-tight">
-          Mutual<span className="text-red-500">Aid</span>
+          Mutual<span className="text-red-200">Aid</span>
         </span>
       </Link>
 
@@ -43,18 +43,18 @@ function LeftPanel() {
         <div>
           <h2 className="text-3xl font-black text-white leading-tight mb-4">
             Your voice matters.<br />
-            <span className="text-slate-400">Your identity doesn&apos;t.</span>
+            <span className="text-red-200">Your identity doesn&apos;t.</span>
           </h2>
-          <p className="text-slate-400 leading-relaxed">
+          <p className="text-red-100/80 leading-relaxed">
             The anonymous community built by first responders, for first responders. Speak freely about your department — salary, culture, leadership, and more.
           </p>
         </div>
 
         <div className="space-y-3">
           {TRUST_ITEMS.map((item) => (
-            <div key={item} className="flex items-center gap-3 text-sm text-slate-300">
-              <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <div key={item} className="flex items-center gap-3 text-sm text-white/90">
+              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <CheckCircle className="w-3.5 h-3.5 text-white" />
               </div>
               {item}
             </div>
@@ -62,11 +62,11 @@ function LeftPanel() {
         </div>
       </div>
 
-      <div className="relative z-10 border-l-2 border-red-500/30 pl-4">
-        <p className="text-slate-400 text-sm italic leading-relaxed">
+      <div className="relative z-10 border-l-2 border-white/30 pl-4">
+        <p className="text-white/75 text-sm italic leading-relaxed">
           &ldquo;Finally a place where I can be honest about what&apos;s really going on in my department without fear of retaliation.&rdquo;
         </p>
-        <p className="text-slate-600 text-xs mt-2">— Verified Officer, Law Enforcement</p>
+        <p className="text-white/50 text-xs mt-2">— Verified Officer, Law Enforcement</p>
       </div>
     </div>
   );
