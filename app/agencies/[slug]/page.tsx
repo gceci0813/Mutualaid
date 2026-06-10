@@ -14,11 +14,7 @@ interface ReviewWithVerified extends Review {
 
 async function getAgency(slug: string): Promise<Agency | null> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("agencies")
-    .select("*")
-    .eq("slug", slug)
-    .single();
+  const { data } = await supabase.from("agencies").select("*").eq("slug", slug).single();
   return data as Agency | null;
 }
 
@@ -41,16 +37,11 @@ async function getReviews(agencyId: string): Promise<ReviewWithVerified[]> {
 function RatingBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-slate-600 w-32 shrink-0">{label}</span>
-      <div className="flex-1 bg-slate-100 rounded-full h-2">
-        <div
-          className="bg-red-500 h-2 rounded-full"
-          style={{ width: `${(value / 5) * 100}%` }}
-        />
+      <span className="text-xs text-slate-500 w-28 shrink-0">{label}</span>
+      <div className="flex-1 bg-slate-100 rounded-full h-1.5">
+        <div className="bg-red-500 h-1.5 rounded-full transition-all" style={{ width: `${(value / 5) * 100}%` }} />
       </div>
-      <span className="text-sm font-semibold text-slate-800 w-8 text-right">
-        {value.toFixed(1)}
-      </span>
+      <span className="text-xs font-bold text-slate-700 w-7 text-right">{value.toFixed(1)}</span>
     </div>
   );
 }
@@ -60,25 +51,13 @@ function StarDisplay({ rating, size = "sm" }: { rating: number; size?: "sm" | "l
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          className={cn(
-            sz,
-            s <= Math.round(rating)
-              ? "text-amber-400 fill-amber-400"
-              : "text-slate-200 fill-slate-200"
-          )}
-        />
+        <Star key={s} className={cn(sz, s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-slate-600 fill-slate-600")} />
       ))}
     </div>
   );
 }
 
-export default async function AgencyPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function AgencyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const [agency, reviews] = await Promise.all([
     getAgency(slug),
@@ -89,271 +68,243 @@ export default async function AgencyPage({
 
   const ratings = reviews.length
     ? {
-        overall: avg(reviews, "rating_overall"),
-        culture: avg(reviews, "rating_culture"),
-        leadership: avg(reviews, "rating_leadership"),
-        worklife: avg(reviews, "rating_worklife"),
-        pay: avg(reviews, "rating_pay"),
-        equipment: avg(reviews, "rating_equipment"),
+        overall:     avg(reviews, "rating_overall"),
+        culture:     avg(reviews, "rating_culture"),
+        leadership:  avg(reviews, "rating_leadership"),
+        worklife:    avg(reviews, "rating_worklife"),
+        pay:         avg(reviews, "rating_pay"),
+        equipment:   avg(reviews, "rating_equipment"),
         advancement: avg(reviews, "rating_advancement"),
-        family: avg(reviews, "rating_family"),
+        family:      avg(reviews, "rating_family"),
       }
     : null;
 
   return (
-    <div className="page-container py-10">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-sm text-slate-500 mb-6">
-        <Link href="/agencies" className="hover:text-slate-700">Agencies</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-slate-900 font-medium">{agency.name}</span>
-      </nav>
+    <>
+      {/* Dark page header */}
+      <div className="page-header">
+        <div className="page-header-inner">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-sm mb-5">
+            <Link href="/agencies" className="text-slate-500 hover:text-slate-300 transition-colors">Agencies</Link>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+            <span className="text-slate-300 font-medium">{agency.name}</span>
+          </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Agency header */}
-          <div className="card p-6">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={cn("badge", DISCIPLINE_COLORS[agency.discipline])}>
-                    {DISCIPLINE_LABELS[agency.discipline]}
+          <div className="flex items-start justify-between gap-6 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <span className={cn("badge", DISCIPLINE_COLORS[agency.discipline])}>
+                  {DISCIPLINE_LABELS[agency.discipline]}
+                </span>
+                {agency.verified && (
+                  <span className="badge bg-blue-900/40 text-blue-300 border border-blue-700/30">
+                    <Shield className="w-3 h-3 mr-1" />Verified
                   </span>
-                  {agency.verified && (
-                    <span className="badge bg-blue-50 text-blue-700">
-                      <Shield className="w-3 h-3 mr-1" /> Verified
-                    </span>
-                  )}
-                </div>
-                <h1 className="text-2xl font-bold text-slate-900 mb-1">{agency.name}</h1>
-                <p className="flex items-center gap-1.5 text-slate-500 text-sm">
-                  <MapPin className="w-4 h-4" />
-                  {agency.city}, {agency.state}
-                  {agency.county ? `, ${agency.county} County` : ""}
-                </p>
+                )}
               </div>
+              <h1 className="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight">{agency.name}</h1>
+              <p className="flex items-center gap-1.5 text-slate-400 text-sm">
+                <MapPin className="w-4 h-4" />
+                {agency.city}, {agency.state}
+                {agency.county ? `, ${agency.county} County` : ""}
+              </p>
+            </div>
 
-              <Link
-                href={`/agencies/${slug}/reviews/new`}
-                className="btn-primary shrink-0"
-              >
+            <div className="flex items-center gap-4 shrink-0 flex-wrap">
+              {ratings && (
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                  <div className="text-4xl font-black text-white mb-1">{ratings.overall.toFixed(1)}</div>
+                  <StarDisplay rating={ratings.overall} size="lg" />
+                  <div className="text-xs text-slate-500 mt-1.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</div>
+                </div>
+              )}
+              <Link href={`/agencies/${slug}/reviews/new`} className="btn-primary shrink-0 self-start">
                 Write a Review
               </Link>
             </div>
+          </div>
+        </div>
+      </div>
 
+      <div className="page-container py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Ratings breakdown */}
             {ratings && (
-              <div className="mt-5 pt-5 border-t border-slate-100 flex items-center gap-4">
-                <div className="text-center">
-                  <div className="text-4xl font-extrabold text-slate-900">
-                    {ratings.overall.toFixed(1)}
-                  </div>
-                  <StarDisplay rating={ratings.overall} size="lg" />
-                  <div className="text-xs text-slate-400 mt-1">
-                    {reviews.length} review{reviews.length !== 1 ? "s" : ""}
-                  </div>
+              <div className="card p-5">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Rating Breakdown</p>
+                <div className="space-y-3">
+                  <RatingBar label="Work Culture"   value={ratings.culture} />
+                  <RatingBar label="Leadership"      value={ratings.leadership} />
+                  <RatingBar label="Work-Life"       value={ratings.worklife} />
+                  <RatingBar label="Pay & Benefits"  value={ratings.pay} />
+                  <RatingBar label="Equipment"       value={ratings.equipment} />
                 </div>
-                <div className="flex-1 space-y-2">
-                  <RatingBar label="Work Culture" value={ratings.culture} />
-                  <RatingBar label="Leadership" value={ratings.leadership} />
-                  <RatingBar label="Work-Life" value={ratings.worklife} />
-                  <RatingBar label="Pay & Benefits" value={ratings.pay} />
-                  <RatingBar label="Equipment" value={ratings.equipment} />
+              </div>
+            )}
+
+            {/* Tab nav */}
+            <div className="flex gap-1 border-b border-slate-200">
+              {[
+                { label: "Reviews", href: `/agencies/${slug}`, active: true },
+                { label: "Forum", href: `/agencies/${slug}/forum` },
+                { label: "Jobs", href: `/agencies/${slug}/jobs` },
+              ].map((tab) => (
+                <Link key={tab.label} href={tab.href}
+                  className={cn(
+                    "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors",
+                    tab.active ? "border-red-600 text-red-600" : "border-transparent text-slate-500 hover:text-slate-700"
+                  )}>
+                  {tab.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Reviews */}
+            {reviews.length === 0 ? (
+              <div className="card p-12 text-center">
+                <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Star className="w-6 h-6 text-slate-300" />
                 </div>
+                <p className="font-bold text-slate-700 mb-1">No reviews yet</p>
+                <p className="text-sm text-slate-400 mb-4">Be the first to review {agency.name}</p>
+                <Link href={`/agencies/${slug}/reviews/new`} className="btn-primary">
+                  Write First Review
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
               </div>
             )}
           </div>
 
-          {/* Tab nav */}
-          <div className="flex gap-1 border-b border-slate-200">
-            {[
-              { label: "Reviews", href: `/agencies/${slug}`, active: true },
-              { label: "Forum", href: `/agencies/${slug}/forum` },
-              { label: "Jobs", href: `/agencies/${slug}/jobs` },
-            ].map((tab) => (
-              <Link
-                key={tab.label}
-                href={tab.href}
-                className={cn(
-                  "px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
-                  tab.active
-                    ? "border-red-600 text-red-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                )}
-              >
-                {tab.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Reviews */}
-          {reviews.length === 0 ? (
-            <div className="card p-10 text-center text-slate-400">
-              <Star className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="font-medium text-slate-600">No reviews yet</p>
-              <p className="text-sm mt-1">Be the first to review {agency.name}</p>
-              <Link href={`/agencies/${slug}/reviews/new`} className="btn-primary mt-4">
-                Write First Review
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {reviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Right sidebar */}
-        <div className="space-y-4">
-          {/* Quick actions */}
-          <div className="card p-5">
-            <h3 className="font-semibold text-slate-900 mb-3">Quick Actions</h3>
-            <div className="space-y-2">
-              <Link href={`/agencies/${slug}/reviews/new`} className="btn-primary w-full justify-center">
-                Write a Review
-              </Link>
-              <Link href={`/agencies/${slug}/forum`} className="btn-secondary w-full justify-center">
-                <MessageSquare className="w-4 h-4" />
-                View Forum Threads
-              </Link>
-              <Link href={`/agencies/${slug}/jobs`} className="btn-secondary w-full justify-center">
-                <Briefcase className="w-4 h-4" />
-                View Open Jobs
-              </Link>
-            </div>
-          </div>
-
-          {/* Agency info */}
-          <div className="card p-5">
-            <h3 className="font-semibold text-slate-900 mb-3">Agency Info</h3>
-            <div className="space-y-2.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Type</span>
-                <span className="font-medium text-slate-800">{DISCIPLINE_LABELS[agency.discipline]}</span>
+          {/* Right sidebar */}
+          <div className="space-y-4">
+            {/* Quick actions */}
+            <div className="card p-5">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Actions</p>
+              <div className="space-y-2">
+                <Link href={`/agencies/${slug}/reviews/new`} className="btn-primary w-full justify-center">
+                  Write a Review
+                </Link>
+                <Link href={`/agencies/${slug}/forum`} className="btn-secondary w-full justify-center">
+                  <MessageSquare className="w-4 h-4" />View Forum
+                </Link>
+                <Link href={`/agencies/${slug}/jobs`} className="btn-secondary w-full justify-center">
+                  <Briefcase className="w-4 h-4" />View Open Jobs
+                </Link>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Location</span>
-                <span className="font-medium text-slate-800">{agency.city}, {agency.state_abbr}</span>
-              </div>
-              {agency.employee_count && (
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Employees</span>
-                  <span className="font-medium text-slate-800">~{agency.employee_count.toLocaleString()}</span>
+            </div>
+
+            {/* Agency info */}
+            <div className="card p-5">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Agency Info</p>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">Type</span>
+                  <span className="font-semibold text-slate-800">{DISCIPLINE_LABELS[agency.discipline]}</span>
                 </div>
-              )}
-              {agency.website && (
-                <a
-                  href={agency.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-red-600 hover:text-red-700 mt-2"
-                >
-                  Official Website
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              )}
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">Location</span>
+                  <span className="font-semibold text-slate-800">{agency.city}, {agency.state_abbr}</span>
+                </div>
+                {agency.employee_count && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Employees</span>
+                    <span className="font-semibold text-slate-800">~{agency.employee_count.toLocaleString()}</span>
+                  </div>
+                )}
+                {agency.website && (
+                  <a href={agency.website} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-red-600 hover:text-red-700 font-medium pt-1 transition-colors">
+                    Official Website <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Stats */}
-          <div className="card p-5">
-            <h3 className="font-semibold text-slate-900 mb-3">Community Stats</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-slate-500">
-                  <Users className="w-3.5 h-3.5" />
-                  Reviews
-                </span>
-                <span className="font-bold text-slate-800">{reviews.length}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-slate-500">
-                  <Briefcase className="w-3.5 h-3.5" />
-                  Open Jobs
-                </span>
-                <span className="font-bold text-slate-800">{agency.open_job_count ?? 0}</span>
+            {/* Stats */}
+            <div className="card p-5">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Community</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-black text-slate-900">{reviews.length}</p>
+                  <p className="text-xs text-slate-500 flex items-center justify-center gap-1 mt-0.5">
+                    <Users className="w-3 h-3" />Reviews
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-black text-slate-900">{agency.open_job_count ?? 0}</p>
+                  <p className="text-xs text-slate-500 flex items-center justify-center gap-1 mt-0.5">
+                    <Briefcase className="w-3 h-3" />Open Jobs
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Claim / Claimed */}
-          {(agency as Agency & { is_claimed?: boolean }).is_claimed ? (
-            <div className="card p-5 border-blue-100 bg-blue-50">
-              <div className="flex items-center gap-2 mb-1">
-                <Building2 className="w-4 h-4 text-blue-600" />
-                <p className="text-sm font-semibold text-blue-800">Official Agency Account</p>
+            {/* Claim / Claimed */}
+            {(agency as Agency & { is_claimed?: boolean }).is_claimed ? (
+              <div className="card p-5 border-emerald-100 bg-emerald-50">
+                <div className="flex items-center gap-2 mb-1">
+                  <Building2 className="w-4 h-4 text-emerald-600" />
+                  <p className="text-sm font-bold text-emerald-800">Official Agency Account</p>
+                </div>
+                <p className="text-xs text-emerald-600">
+                  Actively managed by a verified department representative.
+                </p>
               </div>
-              <p className="text-xs text-blue-600">
-                This agency is actively managed by a verified department representative.
-              </p>
-            </div>
-          ) : (
-            <div className="card p-5 border-dashed">
-              <p className="text-sm font-semibold text-slate-700 mb-1">Are you from this agency?</p>
-              <p className="text-xs text-slate-500 mb-3">
-                Claim your profile to respond to reviews, view analytics, and attract candidates.
-              </p>
-              <Link
-                href={`/agencies/${slug}/claim`}
-                className="btn-secondary w-full justify-center text-sm gap-1.5"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                Claim This Agency
-              </Link>
-            </div>
-          )}
+            ) : (
+              <div className="card p-5 border-dashed border-2 border-slate-200">
+                <p className="text-sm font-bold text-slate-700 mb-1">Are you from this agency?</p>
+                <p className="text-xs text-slate-500 mb-3">
+                  Claim your profile to respond to reviews, view analytics, and attract candidates.
+                </p>
+                <Link href={`/agencies/${slug}/claim`} className="btn-secondary w-full justify-center text-sm">
+                  <Building2 className="w-3.5 h-3.5" />Claim This Agency
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
 function ReviewCard({ review }: { review: ReviewWithVerified }) {
   const recommend = review.recommend;
-  const date = new Date(review.created_at).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
+  const date = new Date(review.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
   return (
     <div className="card p-5">
       <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
         <div>
-          <h4 className="font-semibold text-slate-900">{review.title}</h4>
-          <div className="flex items-center gap-2 mt-1">
+          <h4 className="font-bold text-slate-900 mb-1.5">{review.title}</h4>
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-0.5">
               {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={cn(
-                    "w-3.5 h-3.5",
-                    s <= review.rating_overall
-                      ? "text-amber-400 fill-amber-400"
-                      : "text-slate-200 fill-slate-200"
-                  )}
-                />
+                <Star key={s} className={cn("w-3.5 h-3.5",
+                  s <= review.rating_overall ? "text-amber-400 fill-amber-400" : "text-slate-200 fill-slate-200")} />
               ))}
             </div>
-            <span className="text-xs text-slate-400">·</span>
-            <span className="text-xs text-slate-500">{review.anonymous_alias}</span>
+            <span className="text-slate-300 text-xs">·</span>
+            <span className="text-xs font-semibold text-slate-600">{review.anonymous_alias}</span>
             {review.is_verified_officer && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5">
-                <Shield className="w-2.5 h-2.5" />
-                Verified Officer
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2 py-0.5">
+                <Shield className="w-2.5 h-2.5" />Verified Officer
               </span>
             )}
-            <span className="text-xs text-slate-400">·</span>
+            <span className="text-slate-300 text-xs">·</span>
             <span className="text-xs text-slate-400">{date}</span>
           </div>
         </div>
-        <span
-          className={cn(
-            "badge text-xs",
-            recommend ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-600"
-          )}
-        >
+        <span className={cn("badge text-xs shrink-0",
+          recommend ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-slate-100 text-slate-600")}>
           <ThumbsUp className={cn("w-3 h-3 mr-1", !recommend && "rotate-180")} />
           {recommend ? "Recommends" : "Does not recommend"}
         </span>
@@ -362,23 +313,23 @@ function ReviewCard({ review }: { review: ReviewWithVerified }) {
       <p className="text-sm text-slate-700 leading-relaxed mb-3">{review.body}</p>
 
       {(review.pros || review.cons) && (
-        <div className="grid grid-cols-2 gap-3 mt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
           {review.pros && (
-            <div className="bg-green-50 rounded-lg p-3">
-              <div className="text-xs font-semibold text-green-700 mb-1">Pros</div>
-              <p className="text-xs text-green-900 leading-relaxed">{review.pros}</p>
+            <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
+              <div className="text-xs font-bold text-emerald-700 mb-1.5">✓ Pros</div>
+              <p className="text-xs text-emerald-900 leading-relaxed">{review.pros}</p>
             </div>
           )}
           {review.cons && (
-            <div className="bg-red-50 rounded-lg p-3">
-              <div className="text-xs font-semibold text-red-700 mb-1">Cons</div>
+            <div className="bg-red-50 rounded-xl p-3 border border-red-100">
+              <div className="text-xs font-bold text-red-700 mb-1.5">✗ Cons</div>
               <p className="text-xs text-red-900 leading-relaxed">{review.cons}</p>
             </div>
           )}
         </div>
       )}
 
-      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">
+      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50 text-xs text-slate-400">
         <span>{review.employment_status === "active" ? "Current" : "Former"} employee</span>
         {review.years_experience && <span>· {review.years_experience} years</span>}
       </div>
