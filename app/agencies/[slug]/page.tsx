@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 
 interface ReviewWithVerified extends Review {
   is_verified_officer: boolean;
+  agency_response: { body: string; created_at: string } | null;
 }
 
 async function getAgency(slug: string): Promise<Agency | null> {
@@ -23,16 +24,20 @@ async function getReviews(agencyId: string): Promise<ReviewWithVerified[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("reviews")
-    .select("*, user_profiles(is_verified_officer)")
+    .select("*, user_profiles(is_verified_officer), review_responses(body, created_at)")
     .eq("agency_id", agencyId)
     .order("created_at", { ascending: false })
     .limit(10);
   if (!data) return [];
-  return data.map((r) => ({
-    ...r,
-    is_verified_officer:
-      (r.user_profiles as { is_verified_officer: boolean } | null)?.is_verified_officer ?? false,
-  }));
+  return data.map((r) => {
+    const responses = r.review_responses as { body: string; created_at: string }[] | null;
+    return {
+      ...r,
+      is_verified_officer:
+        (r.user_profiles as { is_verified_officer: boolean } | null)?.is_verified_officer ?? false,
+      agency_response: responses?.[0] ?? null,
+    };
+  });
 }
 
 function RatingBar({ label, value }: { label: string; value: number }) {
@@ -420,6 +425,19 @@ function ReviewCard({ review }: { review: ReviewWithVerified }) {
               <p className="text-xs text-red-900 leading-relaxed">{review.cons}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {review.agency_response && (
+        <div className="mt-4 bg-slate-50 border-l-4 border-slate-300 rounded-r-xl p-4">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Building2 className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-xs font-bold text-slate-700">Official Agency Response</span>
+            <span className="text-xs text-slate-400">
+              · {new Date(review.agency_response.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+            </span>
+          </div>
+          <p className="text-sm text-slate-600 leading-relaxed">{review.agency_response.body}</p>
         </div>
       )}
 

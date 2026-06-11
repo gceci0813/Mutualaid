@@ -14,16 +14,30 @@ export default async function DashboardPage() {
   const alias = user.user_metadata?.anonymous_alias ?? "Anonymous";
 
   const [
-    { count: reviewCount },
-    { count: threadCount },
+    { data: myReviews, count: reviewCount },
+    { data: myThreads, count: threadCount },
     { data: profile },
   ] = await Promise.all([
-    supabase.from("reviews").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-    supabase.from("threads").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase.from("reviews")
+      .select("id, title, rating_overall, created_at, agencies(name, slug)", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase.from("threads")
+      .select("id, title, upvotes, comment_count, created_at", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5),
     supabase.from("user_profiles")
       .select("is_verified_officer, verified_agency_id, verified_domain, subscription_tier, agencies(name)")
       .eq("id", user.id).single(),
   ]);
+
+  const reviews = (myReviews ?? []).map((r) => ({
+    ...r,
+    agency: r.agencies as unknown as { name: string; slug: string } | null,
+  }));
+  const threads = myThreads ?? [];
 
   const isVerified = profile?.is_verified_officer ?? false;
   const verifiedAgencyName = (profile?.agencies as unknown as { name: string } | null)?.name ?? null;
@@ -100,6 +114,69 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* Your reviews */}
+        {reviews.length > 0 && (
+          <div className="mb-6">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              Your Reviews{(reviewCount ?? 0) > 5 && ` (${reviewCount} total)`}
+            </p>
+            <div className="card divide-y divide-slate-100">
+              {reviews.map((review) => (
+                <Link
+                  key={review.id}
+                  href={review.agency ? `/agencies/${review.agency.slug}` : "/agencies"}
+                  className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors group"
+                >
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className={s <= review.rating_overall
+                        ? "w-3 h-3 text-amber-400 fill-amber-400"
+                        : "w-3 h-3 text-slate-200 fill-slate-200"} />
+                    ))}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors truncate">
+                      {review.title}
+                    </p>
+                    <p className="text-xs text-slate-400 truncate">
+                      {review.agency?.name ?? "Unknown agency"} · {new Date(review.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-400 transition-colors shrink-0" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Your threads */}
+        {threads.length > 0 && (
+          <div className="mb-6">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              Your Threads{(threadCount ?? 0) > 5 && ` (${threadCount} total)`}
+            </p>
+            <div className="card divide-y divide-slate-100">
+              {threads.map((thread) => (
+                <Link
+                  key={thread.id}
+                  href={`/forum/${thread.id}`}
+                  className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors group"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors truncate">
+                      {thread.title}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {thread.upvotes} upvote{thread.upvotes !== 1 ? "s" : ""} · {thread.comment_count} comment{thread.comment_count !== 1 ? "s" : ""} · {new Date(thread.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-400 transition-colors shrink-0" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick links */}
         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Access</p>

@@ -1,86 +1,15 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/server";
 import {
   Shield, Star, MessageSquare, Briefcase,
   ArrowRight, EyeOff, Lock, Users, TrendingUp, ChevronRight,
+  MapPin, Trophy,
 } from "lucide-react";
+import { DISCIPLINE_LABELS } from "@/lib/utils";
+import { AnimatedStat, QuoteCarousel } from "./HomeClient";
+import type { DisciplineType } from "@/types";
 
-// ── Animated counter ──────────────────────────────────────────────
-function useCountUp(target: number, duration = 1800, start = false) {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let startTime: number | null = null;
-    const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.floor(ease * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [target, duration, start]);
-  return value;
-}
-
-function AnimatedStat({ value, suffix, label }: { value: number; suffix: string; label: string }) {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const count = useCountUp(value, 1600, visible);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.3 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref} className="text-center">
-      <div className="text-4xl md:text-5xl font-black text-white tabular-nums">
-        {count.toLocaleString()}{suffix}
-      </div>
-      <div className="text-sm text-slate-400 mt-1.5 font-medium">{label}</div>
-    </div>
-  );
-}
-
-// ── Anonymous quotes carousel ─────────────────────────────────────
-const QUOTES = [
-  { text: "I finally said what I've been holding in for six years. Nobody knows it was me, but I know — and that's enough.", role: "Patrol Officer · 8 yrs" },
-  { text: "Found out my department was paying rookies 20% more than me. Would never have known without this community.", role: "Firefighter · 11 yrs" },
-  { text: "The mental health threads here are the most honest conversations I've ever had about this job.", role: "EMT · 4 yrs" },
-  { text: "Used the reviews to pick my new department. Best decision I ever made in my career.", role: "Dispatcher · 6 yrs" },
-];
-
-function QuoteCarousel() {
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setActive((a) => (a + 1) % QUOTES.length), 4500);
-    return () => clearInterval(t);
-  }, []);
-  const q = QUOTES[active];
-  return (
-    <div className="relative overflow-hidden">
-      <div key={active} className="animate-fade-up">
-        <blockquote className="text-xl md:text-2xl font-medium text-white leading-relaxed mb-4">
-          &ldquo;{q.text}&rdquo;
-        </blockquote>
-        <p className="text-red-400 text-sm font-semibold">{q.role}</p>
-      </div>
-      <div className="flex gap-1.5 mt-6">
-        {QUOTES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setActive(i)}
-            className={`h-1 rounded-full transition-all duration-300 ${i === active ? "w-6 bg-red-500" : "w-1.5 bg-slate-600"}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
+export const revalidate = 300; // refresh live stats every 5 minutes
 
 // ── Discipline cards ──────────────────────────────────────────────
 const DISCIPLINES = [
@@ -102,7 +31,51 @@ const FEATURES = [
   { icon: Users, title: "First Responder Only", desc: "Verified officers only. A community designed specifically for the people running toward the danger." },
 ];
 
-export default function LandingPage() {
+function timeAgo(dateStr: string): string {
+  const hours = Math.floor((Date.now() - new Date(dateStr).getTime()) / 3600000);
+  if (hours < 1) return "Just now";
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return `${Math.floor(days / 7)}w ago`;
+}
+
+export default async function LandingPage() {
+  const supabase = await createClient();
+
+  // Live platform stats + activity, all in parallel
+  const [
+    { count: agencyCount },
+    { count: reviewCount },
+    { count: threadCount },
+    { data: topAgencies },
+    { data: recentThreads },
+    { data: recentJobs },
+  ] = await Promise.all([
+    supabase.from("agencies").select("*", { count: "estimated", head: true }),
+    supabase.from("reviews").select("*", { count: "exact", head: true }),
+    supabase.from("threads").select("*", { count: "exact", head: true }),
+    supabase.from("agencies")
+      .select("id, name, slug, city, state_abbr, discipline, avg_overall, review_count")
+      .not("avg_overall", "is", null)
+      .gte("review_count", 1)
+      .order("avg_overall", { ascending: false })
+      .order("review_count", { ascending: false })
+      .limit(3),
+    supabase.from("threads")
+      .select("id, title, upvotes, comment_count, created_at")
+      .order("created_at", { ascending: false })
+      .limit(4),
+    supabase.from("jobs")
+      .select("id, title, discipline, created_at, agencies(name, city, state_abbr)")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(3),
+  ]);
+
+  const hasActivity =
+    (topAgencies?.length ?? 0) > 0 || (recentThreads?.length ?? 0) > 0 || (recentJobs?.length ?? 0) > 0;
+
   return (
     <>
       {/* ── HERO ─────────────────────────────────────────── */}
@@ -141,18 +114,126 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Stats strip */}
+        {/* Stats strip — live numbers */}
         <div className="relative border-t border-slate-800">
           <div className="page-container py-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <AnimatedStat value={66000} suffix="+" label="Agencies indexed" />
+              <AnimatedStat value={agencyCount ?? 66000} suffix="+" label="Agencies indexed" />
+              <AnimatedStat value={reviewCount ?? 0} suffix="" label="Anonymous reviews" />
+              <AnimatedStat value={threadCount ?? 0} suffix="" label="Forum discussions" />
               <AnimatedStat value={100} suffix="%" label="Anonymous by design" />
-              <AnimatedStat value={6} suffix="" label="Disciplines covered" />
-              <AnimatedStat value={0} suffix="" label="Public profiles" />
             </div>
           </div>
         </div>
       </section>
+
+      {/* ── LIVE ACTIVITY ────────────────────────────────── */}
+      {hasActivity && (
+        <section className="py-20 page-container">
+          <div className="text-center mb-12">
+            <p className="text-red-500 text-sm font-bold uppercase tracking-widest mb-3">Happening now</p>
+            <h2 className="section-title mb-3">Live on MutualAid</h2>
+            <p className="text-slate-500 max-w-lg mx-auto">Real reviews, real conversations, real openings — updated continuously.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Top rated agencies */}
+            {(topAgencies?.length ?? 0) > 0 && (
+              <div className="card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-amber-500" />Top Rated Agencies
+                  </h3>
+                  <Link href="/rankings" className="text-xs font-bold text-red-600 hover:text-red-700 transition-colors">
+                    Rankings →
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {topAgencies!.map((agency, i) => (
+                    <Link
+                      key={agency.id}
+                      href={`/agencies/${agency.slug}`}
+                      className="flex items-center gap-3 group"
+                    >
+                      <span className="text-lg w-7 text-center shrink-0">
+                        {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-800 group-hover:text-red-600 transition-colors truncate">
+                          {agency.name}
+                        </p>
+                        <p className="text-xs text-slate-400 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />{agency.city}, {agency.state_abbr}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        <span className="text-sm font-black text-slate-900">{agency.avg_overall?.toFixed(1)}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recent discussions */}
+            {(recentThreads?.length ?? 0) > 0 && (
+              <div className="card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-blue-500" />Active Discussions
+                  </h3>
+                  <Link href="/forum" className="text-xs font-bold text-red-600 hover:text-red-700 transition-colors">
+                    Forum →
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {recentThreads!.map((thread) => (
+                    <Link key={thread.id} href={`/forum/${thread.id}`} className="block group">
+                      <p className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors line-clamp-1">
+                        {thread.title}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {thread.upvotes} upvotes · {thread.comment_count} comments · {timeAgo(thread.created_at)}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Latest jobs */}
+            {(recentJobs?.length ?? 0) > 0 && (
+              <div className="card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-emerald-500" />Latest Openings
+                  </h3>
+                  <Link href="/jobs" className="text-xs font-bold text-red-600 hover:text-red-700 transition-colors">
+                    All Jobs →
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {recentJobs!.map((job) => {
+                    const agency = job.agencies as unknown as { name: string; city: string; state_abbr: string } | null;
+                    return (
+                      <Link key={job.id} href={`/jobs/${job.id}`} className="block group">
+                        <p className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors line-clamp-1">
+                          {job.title}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {agency ? `${agency.name} · ${agency.city}, ${agency.state_abbr} · ` : ""}
+                          {DISCIPLINE_LABELS[job.discipline as DisciplineType]}
+                        </p>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ── QUOTES ───────────────────────────────────────── */}
       <section className="bg-slate-900 py-20 border-b border-slate-800">

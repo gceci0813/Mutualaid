@@ -7,6 +7,8 @@ import {
   Users, ThumbsUp
 } from "lucide-react";
 import { cn, DISCIPLINE_LABELS } from "@/lib/utils";
+import CheckoutButton from "@/components/CheckoutButton";
+import ReviewResponseForm from "./ReviewResponseForm";
 import type { DisciplineType } from "@/types";
 
 interface AgencyData {
@@ -92,12 +94,16 @@ export default async function AgencyDashboardPage() {
 
   // Fetch recent reviews for all claimed agencies
   const agencyIds = claims.map(c => c.agencies?.id).filter(Boolean) as string[];
-  const { data: recentReviews } = await supabase
+  const { data: rawReviews } = await supabase
     .from("reviews")
-    .select("id, agency_id, rating_overall, title, body, created_at, anonymous_alias")
+    .select("id, agency_id, rating_overall, title, body, created_at, anonymous_alias, review_responses(body)")
     .in("agency_id", agencyIds)
     .order("created_at", { ascending: false })
     .limit(10);
+  const recentReviews = (rawReviews ?? []).map((r) => ({
+    ...r,
+    existing_response: (r.review_responses as { body: string }[] | null)?.[0]?.body ?? null,
+  }));
 
   // Fetch discipline benchmarks for comparison
   const disciplines = [...new Set(claims.map(c => c.agencies?.discipline).filter(Boolean))] as DisciplineType[];
@@ -134,7 +140,7 @@ export default async function AgencyDashboardPage() {
           const agency = claim.agencies;
           if (!agency) return null;
 
-          const agencyReviews = (recentReviews ?? []).filter(r => r.agency_id === agency.id);
+          const agencyReviews = recentReviews.filter(r => r.agency_id === agency.id);
           const benchmark = benchmarks[agency.discipline];
           const diff = agency.avg_overall && benchmark ? agency.avg_overall - benchmark : null;
 
@@ -249,6 +255,10 @@ export default async function AgencyDashboardPage() {
                             )}
                             <p className="text-xs text-slate-500 line-clamp-2">{review.body}</p>
                             <p className="text-xs text-slate-400 mt-1.5">{review.anonymous_alias}</p>
+                            <ReviewResponseForm
+                              reviewId={review.id}
+                              existingResponse={review.existing_response}
+                            />
                           </div>
                         ))}
                       </div>
@@ -273,10 +283,24 @@ export default async function AgencyDashboardPage() {
                   </div>
                 </>
               ) : (
-                <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">
-                  <Shield className="w-4 h-4 inline mr-1.5" />
-                  Your claim is under review. We&apos;ll contact{" "}
-                  <strong>{claim.contact_name}</strong> within 1–2 business days to verify and activate your account.
+                <div className="space-y-3">
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">
+                    <Shield className="w-4 h-4 inline mr-1.5" />
+                    Your claim is under review. We&apos;ll contact{" "}
+                    <strong>{claim.contact_name}</strong> within 1–2 business days to verify and activate your account.
+                  </div>
+                  <div className="max-w-xs">
+                    <CheckoutButton
+                      plan={claim.plan === "pro" ? "pro" : "basic"}
+                      claimId={claim.id}
+                      className="btn-primary text-sm w-full justify-center"
+                    >
+                      Pay &amp; Activate {claim.plan === "pro" ? "Pro ($249/mo)" : "Basic ($99/mo)"}
+                    </CheckoutButton>
+                    <p className="text-xs text-slate-400 mt-1.5 text-center">
+                      Skip the wait — activate instantly with payment.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

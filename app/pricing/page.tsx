@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CheckCircle, Shield, BarChart2, Briefcase, Star, Mail, Users } from "lucide-react";
+import CheckoutButton from "@/components/CheckoutButton";
 
 const INDIVIDUAL_TIERS = [
   {
@@ -25,6 +26,7 @@ const INDIVIDUAL_TIERS = [
     highlight: true,
     cta: "Upgrade to Premium",
     ctaHref: "/signup?plan=premium",
+    checkoutPlan: "premium" as const,
     features: [
       "Everything in Free",
       "Salary analytics — median pay by state & discipline",
@@ -81,6 +83,7 @@ function PricingCard({
     cta: string;
     ctaHref: string;
     features: string[];
+    checkoutPlan?: "premium" | "basic" | "pro";
   };
 }) {
   return (
@@ -113,12 +116,21 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      <Link
-        href={tier.ctaHref}
-        className={tier.highlight ? "btn-primary w-full justify-center" : "btn-secondary w-full justify-center"}
-      >
-        {tier.cta}
-      </Link>
+      {tier.checkoutPlan ? (
+        <CheckoutButton
+          plan={tier.checkoutPlan}
+          className={tier.highlight ? "btn-primary w-full justify-center" : "btn-secondary w-full justify-center"}
+        >
+          {tier.cta}
+        </CheckoutButton>
+      ) : (
+        <Link
+          href={tier.ctaHref}
+          className={tier.highlight ? "btn-primary w-full justify-center" : "btn-secondary w-full justify-center"}
+        >
+          {tier.cta}
+        </Link>
+      )}
     </div>
   );
 }
