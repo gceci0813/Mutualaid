@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ThumbsUp, CornerDownRight, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import ReportButton from "@/components/ReportButton";
 import type { Comment } from "@/types";
 
 function timeAgo(dateStr: string): string {
@@ -56,6 +57,7 @@ function CommentCard({
             <CornerDownRight className="w-3 h-3" />
             Reply
           </button>
+          <ReportButton contentType="comment" contentId={comment.id} className="ml-auto" />
         </div>
       </div>
       {comment.replies?.map((reply) => (

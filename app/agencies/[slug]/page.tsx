@@ -6,6 +6,7 @@ import {
   ExternalLink, Shield, ChevronRight, ThumbsUp, Building2
 } from "lucide-react";
 import { cn, DISCIPLINE_LABELS, DISCIPLINE_COLORS } from "@/lib/utils";
+import ReportButton from "@/components/ReportButton";
 import type { Agency, Review } from "@/types";
 import type { Metadata } from "next";
 
@@ -444,6 +445,9 @@ function ReviewCard({ review }: { review: ReviewWithVerified }) {
       <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50 text-xs text-slate-400">
         <span>{review.employment_status === "active" ? "Current" : "Former"} employee</span>
         {review.years_experience && <span>· {review.years_experience} years</span>}
+        <span className="ml-auto">
+          <ReportButton contentType="review" contentId={review.id} />
+        </span>
       </div>
     </div>
   );

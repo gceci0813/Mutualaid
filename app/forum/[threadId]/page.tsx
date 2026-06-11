@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronLeft, ThumbsUp, MessageSquare, Pin } from "lucide-react";
 import CommentSection from "./CommentSection";
 import ThreadUpvoteButton from "./ThreadUpvoteButton";
+import ReportButton from "@/components/ReportButton";
 import type { Thread, Comment } from "@/types";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -95,6 +96,9 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
             <span className="flex items-center gap-1.5 text-slate-400">
               <MessageSquare className="w-4 h-4" />
               {t.comment_count} comment{t.comment_count !== 1 ? "s" : ""}
+            </span>
+            <span className="ml-auto">
+              <ReportButton contentType="thread" contentId={t.id} />
             </span>
           </div>
         </div>

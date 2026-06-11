@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Shield, Copy, Check, RefreshCw, Search, ChevronDown } from "lucide-react";
+import { Shield, Copy, Check, RefreshCw, Search, ChevronDown, Flag } from "lucide-react";
 
 interface Agency {
   id: string;
@@ -115,14 +115,19 @@ export default function AdminCodesPage() {
 
   return (
     <div className="page-container py-10 max-w-3xl">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
-          <Shield className="w-5 h-5 text-red-600" />
+      <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+            <Shield className="w-5 h-5 text-red-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Officer Verification Codes</h1>
+            <p className="text-sm text-slate-500">Generate one-time codes for agency contacts to distribute to their officers</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Officer Verification Codes</h1>
-          <p className="text-sm text-slate-500">Generate one-time codes for agency contacts to distribute to their officers</p>
-        </div>
+        <a href="/dashboard/admin/reports" className="btn-secondary text-xs gap-1.5">
+          <Flag className="w-3.5 h-3.5" />Content Reports
+        </a>
       </div>
 
       {/* Agency selector */}
