@@ -51,7 +51,7 @@ export default function AboutPage() {
         {/* What we offer */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
           {[
-            { icon: Star, title: "Anonymous Reviews", desc: "59,000+ agencies indexed and rated by verified officers", href: "/agencies" },
+            { icon: Star, title: "Anonymous Reviews", desc: "79,000+ agencies indexed and rated by verified officers", href: "/agencies" },
             { icon: MessageSquare, title: "Community Forum", desc: "Salary, mental health, family life — the real conversations", href: "/forum" },
             { icon: Briefcase, title: "Job Board", desc: "Open positions with real salary data, posted by departments", href: "/jobs" },
             { icon: TrendingUp, title: "Salary Intelligence", desc: "Pay data and satisfaction scores by discipline and state", href: "/salary" },
