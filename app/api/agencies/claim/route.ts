@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
 
   const { data: claims } = await supabase
     .from("agency_claims")
-    .select("id, plan, active, created_at, contact_name, agencies(id, name, city, state_abbr, discipline, avg_overall, review_count, open_job_count)")
+    .select("id, plan, active, created_at, contact_name, agencies(id, name, slug, city, state_abbr, discipline, avg_overall, review_count, open_job_count, rating_culture, rating_leadership, rating_worklife, rating_pay, rating_equipment)")
     .eq("claimed_by", user.id)
     .order("created_at", { ascending: false });
 

@@ -74,12 +74,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function AgencyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const supabase = await createClient();
+
   const [agency, reviews] = await Promise.all([
     getAgency(slug),
     getAgency(slug).then((a) => (a ? getReviews(a.id) : [])),
   ]);
 
   if (!agency) notFound();
+
+  // Similar agencies: same discipline + state, exclude this one
+  const { data: similarData } = await supabase
+    .from("agencies")
+    .select("id, name, slug, city, avg_overall, review_count")
+    .eq("discipline", agency.discipline)
+    .eq("state_abbr", agency.state_abbr)
+    .neq("slug", slug)
+    .not("avg_overall", "is", null)
+    .order("avg_overall", { ascending: false })
+    .limit(4);
+  const similarAgencies = (similarData ?? []) as { id: string; name: string; slug: string; city: string; avg_overall: number; review_count: number }[];
 
   const ratings = reviews.length
     ? {
@@ -288,6 +302,44 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
                 </div>
               </div>
             </div>
+
+            {/* Similar agencies */}
+            {similarAgencies.length > 0 && (
+              <div className="card p-5">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                  Similar Agencies in {agency.state_abbr}
+                </p>
+                <div className="space-y-1">
+                  {similarAgencies.map((similar) => (
+                    <Link
+                      key={similar.id}
+                      href={`/agencies/${similar.slug}`}
+                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 transition-colors group"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors truncate">
+                          {similar.name}
+                        </p>
+                        <p className="text-xs text-slate-400">{similar.city}</p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
+                        <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                        <span className="text-xs font-bold text-slate-700">{similar.avg_overall.toFixed(1)}</span>
+                      </div>
+                    </Link>
+                  ))}
+                  <Link
+                    href={`/rankings/${agency.discipline}/${agency.state_abbr}`}
+                    className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-slate-50 transition-colors group mt-1"
+                  >
+                    <span className="text-xs text-slate-500 group-hover:text-red-600 transition-colors">
+                      View all {DISCIPLINE_LABELS[agency.discipline]} in {agency.state_abbr}
+                    </span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* Claim / Claimed */}
             {(agency as Agency & { is_claimed?: boolean }).is_claimed ? (
