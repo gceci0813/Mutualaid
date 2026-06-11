@@ -101,8 +101,11 @@ export default function JobsPage() {
     setLoading(false);
   }
 
-  const featured = jobs.filter((j) => j.is_featured);
-  const regular = jobs.filter((j) => !j.is_featured);
+  // Featured placement expires 30 days after purchase
+  const isCurrentlyFeatured = (j: JobWithAgency & { featured_until?: string | null }) =>
+    j.is_featured && (!j.featured_until || new Date(j.featured_until) > new Date());
+  const featured = jobs.filter(isCurrentlyFeatured);
+  const regular = jobs.filter((j) => !isCurrentlyFeatured(j));
 
   return (
     <>

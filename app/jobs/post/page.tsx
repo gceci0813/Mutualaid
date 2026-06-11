@@ -99,10 +99,10 @@ export default function PostJobPage() {
         external_apply_url: applyUrl.trim() || null,
         deadline: deadline || null,
         active: true,
-        is_featured: isFeatured,
-        featured_until: isFeatured
-          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-          : null,
+        // Featured status is granted by the Stripe webhook after payment —
+        // never set directly from the client.
+        is_featured: false,
+        featured_until: null,
       })
       .select()
       .single();
@@ -111,6 +111,28 @@ export default function PostJobPage() {
       setError(insertError.message);
       setLoading(false);
       return;
+    }
+
+    // Featured upgrade → $99 one-time Stripe Checkout
+    if (isFeatured) {
+      try {
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: "featured_job", jobId: data.id }),
+        });
+        const checkout = await res.json();
+        if (res.ok && checkout.url) {
+          window.location.href = checkout.url;
+          return;
+        }
+        // Payments unavailable — job is posted, just not featured
+        router.push(`/jobs/${data.id}?featured=unavailable`);
+        return;
+      } catch {
+        router.push(`/jobs/${data.id}?featured=unavailable`);
+        return;
+      }
     }
 
     router.push(`/jobs/${data.id}`);
@@ -368,7 +390,8 @@ export default function PostJobPage() {
           </div>
           {isFeatured && (
             <p className="text-xs text-amber-700 mt-3 pl-8">
-              You&apos;ll be invoiced $99 after your listing is reviewed and approved.
+              You&apos;ll be taken to secure checkout after posting. Your listing goes live
+              immediately; the featured badge activates as soon as payment completes.
             </p>
           )}
         </div>

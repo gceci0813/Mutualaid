@@ -18,6 +18,8 @@ type DisciplineStats = {
   jobCount: number;
   avgPayRating: number;
   reviewCount: number;
+  avgReported: number;
+  reportedCount: number;
 };
 
 type TopAgency = {
@@ -61,7 +63,7 @@ function SatisfactionBar({ value }: { value: number }) {
 export default async function SalaryPage() {
   const supabase = await createClient();
 
-  const [{ data: rawJobs }, { data: rawReviews }] = await Promise.all([
+  const [{ data: rawJobs }, { data: rawReviews }, reportedRes] = await Promise.all([
     supabase
       .from("jobs")
       .select("discipline, salary_min, salary_max, salary_type, agencies(name, city, state_abbr, slug, discipline)")
@@ -72,20 +74,29 @@ export default async function SalaryPage() {
       .from("reviews")
       .select("rating_pay, agencies(discipline)")
       .limit(2000),
+    // Officer-reported pay from reviews — separate query so the page still
+    // works before migration 004 adds the salary columns
+    supabase
+      .from("reviews")
+      .select("salary_amount, salary_period, agencies(discipline)")
+      .not("salary_amount", "is", null)
+      .limit(2000),
   ]);
 
   const jobs = rawJobs ?? [];
   const reviews = rawReviews ?? [];
+  const reportedSalaries = reportedRes.data ?? [];
 
   // ── Aggregate by discipline ────────────────────────────────────────────────
   const disciplineMap: Record<
     string,
-    { salaryMins: number[]; salaryMaxes: number[]; payRatings: number[] }
+    { salaryMins: number[]; salaryMaxes: number[]; payRatings: number[]; reported: number[] }
   > = {};
+  const emptyBucket = () => ({ salaryMins: [], salaryMaxes: [], payRatings: [], reported: [] });
 
   for (const job of jobs as any[]) {
     const d = job.discipline as string;
-    if (!disciplineMap[d]) disciplineMap[d] = { salaryMins: [], salaryMaxes: [], payRatings: [] };
+    if (!disciplineMap[d]) disciplineMap[d] = emptyBucket();
     const toAnnual = (n: number) =>
       job.salary_type === "hourly" ? Math.round(n * 2080) : n;
     if (job.salary_min) disciplineMap[d].salaryMins.push(toAnnual(job.salary_min));
@@ -95,8 +106,16 @@ export default async function SalaryPage() {
   for (const r of reviews as any[]) {
     const d = (r.agencies as any)?.discipline as string | undefined;
     if (!d) continue;
-    if (!disciplineMap[d]) disciplineMap[d] = { salaryMins: [], salaryMaxes: [], payRatings: [] };
+    if (!disciplineMap[d]) disciplineMap[d] = emptyBucket();
     if (r.rating_pay) disciplineMap[d].payRatings.push(r.rating_pay);
+  }
+
+  for (const r of reportedSalaries as any[]) {
+    const d = (r.agencies as any)?.discipline as string | undefined;
+    if (!d || !r.salary_amount) continue;
+    if (!disciplineMap[d]) disciplineMap[d] = emptyBucket();
+    const annual = r.salary_period === "hourly" ? Math.round(r.salary_amount * 2080) : r.salary_amount;
+    disciplineMap[d].reported.push(annual);
   }
 
   const stats: DisciplineStats[] = Object.entries(disciplineMap)
@@ -107,8 +126,10 @@ export default async function SalaryPage() {
       jobCount: data.salaryMins.length,
       avgPayRating: avg(data.payRatings),
       reviewCount: data.payRatings.length,
+      avgReported: avg(data.reported),
+      reportedCount: data.reported.length,
     }))
-    .filter((s) => s.avgMin > 0 || s.avgPayRating > 0)
+    .filter((s) => s.avgMin > 0 || s.avgPayRating > 0 || s.avgReported > 0)
     .sort((a, b) => b.avgMin - a.avgMin);
 
   // ── Top paying agencies ────────────────────────────────────────────────────
@@ -162,7 +183,7 @@ export default async function SalaryPage() {
             { label: "Job salary data points", value: totalSalaryPoints.toLocaleString(), icon: DollarSign, color: "bg-red-50 text-red-600" },
             { label: "Disciplines tracked", value: disciplineCount.toString(), icon: TrendingUp, color: "bg-blue-50 text-blue-600" },
             { label: "Pay satisfaction reviews", value: totalReviewPoints.toLocaleString(), icon: Users, color: "bg-emerald-50 text-emerald-600" },
-            { label: "Active job listings", value: totalSalaryPoints.toLocaleString(), icon: Briefcase, color: "bg-amber-50 text-amber-600" },
+            { label: "Officer-reported salaries", value: reportedSalaries.length.toLocaleString(), icon: Briefcase, color: "bg-amber-50 text-amber-600" },
           ].map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="card p-5 text-center">
               <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mx-auto mb-3", color)}>
@@ -214,6 +235,14 @@ export default async function SalaryPage() {
                           {s.jobCount} listing{s.jobCount !== 1 ? "s" : ""}
                         </span>
                       </div>
+                      {s.avgReported > 0 && (
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <PayBar value={s.avgReported} max={maxSalary} color="bg-gradient-to-r from-emerald-400 to-emerald-600" />
+                          <span className="text-xs text-emerald-600 w-20 text-right shrink-0 font-medium" title="Average pay reported anonymously by officers in reviews">
+                            {fmtK(s.avgReported)} reported
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

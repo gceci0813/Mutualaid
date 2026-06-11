@@ -85,6 +85,8 @@ export default function NewReviewPage({ params }: { params: Params }) {
   const [cons, setCons] = useState("");
   const [employmentStatus, setEmploymentStatus] = useState<"active" | "former" | "volunteer">("active");
   const [yearsExp, setYearsExp] = useState("");
+  const [salaryAmount, setSalaryAmount] = useState("");
+  const [salaryPeriod, setSalaryPeriod] = useState<"hourly" | "annual">("annual");
   const [recommend, setRecommend] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -123,7 +125,7 @@ export default function NewReviewPage({ params }: { params: Params }) {
       return;
     }
 
-    const { error: insertError } = await supabase.from("reviews").insert({
+    const baseReview = {
       agency_id: agency.id,
       user_id: user.id,
       anonymous_alias: user.user_metadata?.anonymous_alias ?? "Anonymous",
@@ -135,7 +137,19 @@ export default function NewReviewPage({ params }: { params: Params }) {
       employment_status: employmentStatus,
       years_experience: yearsExp ? parseInt(yearsExp) : null,
       recommend,
-    });
+    };
+
+    const salary = salaryAmount && parseFloat(salaryAmount) > 0
+      ? { salary_amount: parseFloat(salaryAmount), salary_period: salaryPeriod }
+      : {};
+
+    let { error: insertError } = await supabase.from("reviews").insert({ ...baseReview, ...salary });
+
+    // Salary columns ship in a later DB migration — if they don't exist yet,
+    // save the review without the salary rather than losing it.
+    if (insertError && "salary_amount" in salary && /salary/.test(insertError.message)) {
+      ({ error: insertError } = await supabase.from("reviews").insert(baseReview));
+    }
 
     if (insertError) {
       setError(insertError.message);
@@ -328,6 +342,47 @@ export default function NewReviewPage({ params }: { params: Params }) {
                 max={50}
               />
             </div>
+          </div>
+
+          {/* Salary — optional, anonymous */}
+          <div className="mt-5 pt-5 border-t border-slate-100">
+            <label className="label" htmlFor="salary">
+              Your pay (optional)
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                <input
+                  id="salary"
+                  type="number"
+                  className="input pl-7"
+                  placeholder={salaryPeriod === "hourly" ? "e.g. 32.50" : "e.g. 68000"}
+                  value={salaryAmount}
+                  onChange={(e) => setSalaryAmount(e.target.value)}
+                  min={0}
+                  step="0.01"
+                />
+              </div>
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden shrink-0">
+                {(["annual", "hourly"] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setSalaryPeriod(p)}
+                    className={cn(
+                      "px-4 text-sm font-medium capitalize transition-colors",
+                      salaryPeriod === p ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"
+                    )}
+                  >
+                    {p === "annual" ? "/year" : "/hour"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 mt-1.5">
+              Shared anonymously and only ever shown in aggregate — it helps fellow officers know what
+              fair pay looks like. Never linked to your review publicly.
+            </p>
           </div>
         </div>
 

@@ -17,4 +17,5 @@ export const PLAN_PRICE_ENV: Record<string, string | undefined> = {
   premium: process.env.STRIPE_PRICE_PREMIUM,
   basic: process.env.STRIPE_PRICE_BASIC,
   pro: process.env.STRIPE_PRICE_PRO,
+  featured_job: process.env.STRIPE_PRICE_FEATURED_JOB,
 };

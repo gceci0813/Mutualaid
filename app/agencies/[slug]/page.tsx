@@ -21,16 +21,21 @@ async function getAgency(slug: string): Promise<Agency | null> {
   return data as Agency | null;
 }
 
-async function getReviews(agencyId: string): Promise<ReviewWithVerified[]> {
+const REVIEWS_PER_PAGE = 10;
+
+async function getReviews(
+  agencyId: string,
+  page: number
+): Promise<{ reviews: ReviewWithVerified[]; total: number }> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const from = (page - 1) * REVIEWS_PER_PAGE;
+  const { data, count } = await supabase
     .from("reviews")
-    .select("*, user_profiles(is_verified_officer), review_responses(body, created_at)")
+    .select("*, user_profiles(is_verified_officer), review_responses(body, created_at)", { count: "exact" })
     .eq("agency_id", agencyId)
     .order("created_at", { ascending: false })
-    .limit(10);
-  if (!data) return [];
-  return data.map((r) => {
+    .range(from, from + REVIEWS_PER_PAGE - 1);
+  const reviews = (data ?? []).map((r) => {
     const responses = r.review_responses as { body: string; created_at: string }[] | null;
     return {
       ...r,
@@ -39,6 +44,18 @@ async function getReviews(agencyId: string): Promise<ReviewWithVerified[]> {
       agency_response: responses?.[0] ?? null,
     };
   });
+  return { reviews, total: count ?? 0 };
+}
+
+// Rating averages must cover ALL reviews, not just the current page —
+// fetches numeric columns only.
+async function getRatingStats(agencyId: string): Promise<Review[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("reviews")
+    .select("rating_overall, rating_culture, rating_leadership, rating_worklife, rating_pay, rating_equipment, rating_advancement, rating_family")
+    .eq("agency_id", agencyId);
+  return (data ?? []) as Review[];
 }
 
 function RatingBar({ label, value }: { label: string; value: number }) {
@@ -78,16 +95,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function AgencyPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function AgencyPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { slug } = await params;
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
   const supabase = await createClient();
 
-  const [agency, reviews] = await Promise.all([
-    getAgency(slug),
-    getAgency(slug).then((a) => (a ? getReviews(a.id) : [])),
-  ]);
-
+  const agency = await getAgency(slug);
   if (!agency) notFound();
+
+  const [{ reviews, total: totalReviews }, ratingRows] = await Promise.all([
+    getReviews(agency.id, page),
+    getRatingStats(agency.id),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(totalReviews / REVIEWS_PER_PAGE));
 
   // Similar agencies: same discipline + state, exclude this one
   const { data: similarData } = await supabase
@@ -101,16 +128,16 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
     .limit(4);
   const similarAgencies = (similarData ?? []) as { id: string; name: string; slug: string; city: string; avg_overall: number; review_count: number }[];
 
-  const ratings = reviews.length
+  const ratings = ratingRows.length
     ? {
-        overall:     avg(reviews, "rating_overall"),
-        culture:     avg(reviews, "rating_culture"),
-        leadership:  avg(reviews, "rating_leadership"),
-        worklife:    avg(reviews, "rating_worklife"),
-        pay:         avg(reviews, "rating_pay"),
-        equipment:   avg(reviews, "rating_equipment"),
-        advancement: avg(reviews, "rating_advancement"),
-        family:      avg(reviews, "rating_family"),
+        overall:     avg(ratingRows, "rating_overall"),
+        culture:     avg(ratingRows, "rating_culture"),
+        leadership:  avg(ratingRows, "rating_leadership"),
+        worklife:    avg(ratingRows, "rating_worklife"),
+        pay:         avg(ratingRows, "rating_pay"),
+        equipment:   avg(ratingRows, "rating_equipment"),
+        advancement: avg(ratingRows, "rating_advancement"),
+        family:      avg(ratingRows, "rating_family"),
       }
     : null;
 
@@ -126,11 +153,11 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
       addressCountry: "US",
     },
     ...(agency.website && { url: agency.website }),
-    ...(ratings && reviews.length > 0 && {
+    ...(ratings && totalReviews > 0 && {
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: ratings.overall.toFixed(1),
-        reviewCount: reviews.length,
+        reviewCount: totalReviews,
         bestRating: "5",
         worstRating: "1",
       },
@@ -178,7 +205,7 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
                   <div className="text-4xl font-black text-slate-900 mb-1">{ratings.overall.toFixed(1)}</div>
                   <StarDisplay rating={ratings.overall} size="lg" />
-                  <div className="text-xs text-slate-400 mt-1.5">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</div>
+                  <div className="text-xs text-slate-400 mt-1.5">{totalReviews} review{totalReviews !== 1 ? "s" : ""}</div>
                 </div>
               )}
               <Link href={`/agencies/${slug}/reviews/new`} className="btn-primary shrink-0 self-start">
@@ -241,6 +268,28 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
                 {reviews.map((review) => (
                   <ReviewCard key={review.id} review={review} />
                 ))}
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    {page > 1 ? (
+                      <Link href={`/agencies/${slug}?page=${page - 1}`} className="btn-secondary text-sm">
+                        ← Previous
+                      </Link>
+                    ) : (
+                      <span className="btn-secondary text-sm opacity-40 pointer-events-none">← Previous</span>
+                    )}
+                    <span className="text-sm text-slate-400 px-2">
+                      Page {page} of {totalPages}
+                    </span>
+                    {page < totalPages ? (
+                      <Link href={`/agencies/${slug}?page=${page + 1}`} className="btn-secondary text-sm">
+                        Next →
+                      </Link>
+                    ) : (
+                      <span className="btn-secondary text-sm opacity-40 pointer-events-none">Next →</span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -295,7 +344,7 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Community</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black text-slate-900">{reviews.length}</p>
+                  <p className="text-2xl font-black text-slate-900">{totalReviews}</p>
                   <p className="text-xs text-slate-500 flex items-center justify-center gap-1 mt-0.5">
                     <Users className="w-3 h-3" />Reviews
                   </p>

@@ -25,10 +25,18 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
-      const { user_id, plan, claim_id } = session.metadata ?? {};
+      const { user_id, plan, claim_id, job_id } = session.metadata ?? {};
       if (!user_id || !plan) break;
 
-      if (plan === "premium") {
+      if (plan === "featured_job" && job_id) {
+        await admin
+          .from("jobs")
+          .update({
+            is_featured: true,
+            featured_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          })
+          .eq("id", job_id);
+      } else if (plan === "premium") {
         await admin
           .from("user_profiles")
           .update({
