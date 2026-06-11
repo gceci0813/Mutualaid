@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, AlertCircle } from "lucide-react";
+import { ChevronLeft, AlertCircle, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { ThreadCategory, DisciplineType } from "@/types";
@@ -34,13 +34,36 @@ const DISCIPLINES = [
 ];
 
 export default function NewThreadPage() {
+  return (
+    <Suspense>
+      <NewThreadForm />
+    </Suspense>
+  );
+}
+
+function NewThreadForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const agencySlug = searchParams.get("agency");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [category, setCategory] = useState<ThreadCategory>("general");
   const [discipline, setDiscipline] = useState<DisciplineType | "">("");
+  const [agency, setAgency] = useState<{ id: string; name: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Resolve ?agency=slug to pin this thread to an agency's board
+  useEffect(() => {
+    if (!agencySlug) return;
+    const supabase = createClient();
+    supabase
+      .from("agencies")
+      .select("id, name")
+      .eq("slug", agencySlug)
+      .single()
+      .then(({ data }) => { if (data) setAgency(data); });
+  }, [agencySlug]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,6 +87,7 @@ export default function NewThreadPage() {
         body: body.trim(),
         category,
         discipline_filter: discipline || null,
+        agency_id: agency?.id ?? null,
         upvotes: 0,
         comment_count: 0,
         pinned: false,
@@ -95,6 +119,15 @@ export default function NewThreadPage() {
       <p className="text-slate-500 text-sm mb-8">
         Posted anonymously under your alias.
       </p>
+
+      {agency && (
+        <div className="flex items-center gap-2.5 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-6">
+          <Building2 className="w-4 h-4 text-red-600 shrink-0" />
+          <p className="text-sm text-red-700">
+            Posting to <strong>{agency.name}</strong>&apos;s discussion board — it will also appear in the nationwide forum.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Category */}
