@@ -162,7 +162,7 @@ export default function SignupPage() {
         setSeedLoading(false);
         return;
       }
-      router.push("/dashboard");
+      router.push("/welcome");
       router.refresh();
     } catch {
       setSeedError("Something went wrong. Please try again.");

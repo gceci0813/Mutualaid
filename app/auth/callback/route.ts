@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+// Email-confirmation links land here — default new users into onboarding.
 function getSafeRedirect(next: string | null): string {
-  if (!next) return "/dashboard";
+  if (!next) return "/welcome";
   if (next.startsWith("/") && !next.startsWith("//")) return next;
-  return "/dashboard";
+  return "/welcome";
 }
 
 export async function GET(request: Request) {
