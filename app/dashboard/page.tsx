@@ -5,6 +5,7 @@ import {
   Shield, Search, MessageSquare, Briefcase, ChevronRight,
   CheckCircle, Star, Building2, Mail, Lock, ArrowRight, User
 } from "lucide-react";
+import DeleteContentButton from "@/components/DeleteContentButton";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -123,28 +124,29 @@ export default async function DashboardPage() {
             </p>
             <div className="card divide-y divide-slate-100">
               {reviews.map((review) => (
-                <Link
-                  key={review.id}
-                  href={review.agency ? `/agencies/${review.agency.slug}` : "/agencies"}
-                  className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors group"
-                >
-                  <div className="flex items-center gap-0.5 shrink-0">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className={s <= review.rating_overall
-                        ? "w-3 h-3 text-amber-400 fill-amber-400"
-                        : "w-3 h-3 text-slate-200 fill-slate-200"} />
-                    ))}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors truncate">
-                      {review.title}
-                    </p>
-                    <p className="text-xs text-slate-400 truncate">
-                      {review.agency?.name ?? "Unknown agency"} · {new Date(review.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-400 transition-colors shrink-0" />
-                </Link>
+                <div key={review.id} className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors group">
+                  <Link
+                    href={review.agency ? `/agencies/${review.agency.slug}` : "/agencies"}
+                    className="flex items-center gap-3 flex-1 min-w-0"
+                  >
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className={s <= review.rating_overall
+                          ? "w-3 h-3 text-amber-400 fill-amber-400"
+                          : "w-3 h-3 text-slate-200 fill-slate-200"} />
+                      ))}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors truncate">
+                        {review.title}
+                      </p>
+                      <p className="text-xs text-slate-400 truncate">
+                        {review.agency?.name ?? "Unknown agency"} · {new Date(review.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </div>
+                  </Link>
+                  <DeleteContentButton contentType="review" contentId={review.id} />
+                </div>
               ))}
             </div>
           </div>
@@ -158,21 +160,17 @@ export default async function DashboardPage() {
             </p>
             <div className="card divide-y divide-slate-100">
               {threads.map((thread) => (
-                <Link
-                  key={thread.id}
-                  href={`/forum/${thread.id}`}
-                  className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors group"
-                >
-                  <div className="flex-1 min-w-0">
+                <div key={thread.id} className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors group">
+                  <Link href={`/forum/${thread.id}`} className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors truncate">
                       {thread.title}
                     </p>
                     <p className="text-xs text-slate-400">
                       {thread.upvotes} upvote{thread.upvotes !== 1 ? "s" : ""} · {thread.comment_count} comment{thread.comment_count !== 1 ? "s" : ""} · {new Date(thread.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-400 transition-colors shrink-0" />
-                </Link>
+                  </Link>
+                  <DeleteContentButton contentType="thread" contentId={thread.id} />
+                </div>
               ))}
             </div>
           </div>

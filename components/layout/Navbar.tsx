@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Shield, Menu, X, ChevronDown, User, LayoutDashboard, LogOut, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import NotificationBell from "@/components/NotificationBell";
 
 const NAV_LINKS = [
   {
@@ -101,10 +102,13 @@ export default function Navbar() {
             )}
           </nav>
 
-          {/* Search icon */}
-          <Link href="/search" className="hidden md:flex p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700" aria-label="Search">
-            <Search className="w-4 h-4" />
-          </Link>
+          {/* Search + notifications */}
+          <div className="hidden md:flex items-center gap-0.5">
+            <Link href="/search" className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700" aria-label="Search">
+              <Search className="w-4 h-4" />
+            </Link>
+            <NotificationBell />
+          </div>
 
           {/* Auth */}
           <div className="hidden md:flex items-center gap-2">

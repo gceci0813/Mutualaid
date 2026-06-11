@@ -12,6 +12,7 @@
     "@stripe/stripe-js": "^9.8.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "csv-parse": "^6.1.0",
     "lucide-react": "^0.474.0",
