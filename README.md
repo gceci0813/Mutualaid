@@ -12,7 +12,7 @@ Live at **[mutualaid-seven.vercel.app](https://mutualaid-seven.vercel.app)**
 
 | Area | What it does |
 |---|---|
-| **Anonymous reviews** | 8-category ratings (culture, leadership, pay, equipment…) across 66,000+ indexed US agencies, with optional officer-reported salary data |
+| **Anonymous reviews** | 8-category ratings (culture, leadership, pay, equipment…) across 46,000+ indexed US agencies, with optional officer-reported salary data |
 | **Agency responses** | Claimed agencies post one official public reply per review |
 | **Community forum** | Nationwide + per-agency discussion boards, threaded comments, upvotes, in-app notifications |
 | **Job board** | Department-posted listings with salary ranges; $99 featured placement |

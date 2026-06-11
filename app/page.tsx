@@ -11,15 +11,22 @@ import type { DisciplineType } from "@/types";
 
 export const revalidate = 300; // refresh live stats every 5 minutes
 
-// ── Discipline cards ──────────────────────────────────────────────
+// ── Discipline cards (counts fetched live) ────────────────────────
 const DISCIPLINES = [
-  { label: "Law Enforcement", emoji: "👮", href: "/agencies?discipline=police", count: "18,000+", color: "from-blue-900/40" },
-  { label: "Fire Departments", emoji: "🚒", href: "/agencies?discipline=fire", count: "27,000+", color: "from-red-900/40" },
-  { label: "EMS / Ambulance", emoji: "🚑", href: "/agencies?discipline=ems", count: "12,000+", color: "from-orange-900/40" },
-  { label: "Dispatch / 911", emoji: "📡", href: "/agencies?discipline=dispatch", count: "6,000+", color: "from-yellow-900/40" },
-  { label: "Public Works", emoji: "🔧", href: "/agencies?discipline=dpw", count: "3,000+", color: "from-green-900/40" },
-  { label: "Federal (FBI/DHS)", emoji: "🏛️", href: "/agencies?discipline=fbi", count: "500+", color: "from-purple-900/40" },
+  { label: "Law Enforcement", emoji: "👮", href: "/agencies?discipline=police", filter: ["police"], color: "from-blue-900/40" },
+  { label: "Fire Departments", emoji: "🚒", href: "/agencies?discipline=fire", filter: ["fire"], color: "from-red-900/40" },
+  { label: "EMS / Ambulance", emoji: "🚑", href: "/agencies?discipline=ems", filter: ["ems"], color: "from-orange-900/40" },
+  { label: "Dispatch / 911", emoji: "📡", href: "/agencies?discipline=dispatch", filter: ["dispatch"], color: "from-yellow-900/40" },
+  { label: "Public Works", emoji: "🔧", href: "/agencies?discipline=dpw", filter: ["dpw"], color: "from-green-900/40" },
+  { label: "Federal (FBI/DHS)", emoji: "🏛️", href: "/agencies?discipline=fbi", filter: ["fbi", "dhs"], color: "from-purple-900/40" },
 ];
+
+// "19,586" → "19,500+ agencies"; small counts shown exactly; zero → growing
+function countLabel(n: number): string {
+  if (n >= 1000) return `${(Math.floor(n / 500) * 500).toLocaleString()}+ agencies`;
+  if (n > 0) return `${n} agencies`;
+  return "Growing directory";
+}
 
 // ── Features ──────────────────────────────────────────────────────
 const FEATURES = [
@@ -51,6 +58,7 @@ export default async function LandingPage() {
     { data: topAgencies },
     { data: recentThreads },
     { data: recentJobs },
+    ...disciplineCounts
   ] = await Promise.all([
     supabase.from("agencies").select("*", { count: "estimated", head: true }),
     supabase.from("reviews").select("*", { count: "exact", head: true }),
@@ -71,6 +79,9 @@ export default async function LandingPage() {
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(3),
+    ...DISCIPLINES.map((d) =>
+      supabase.from("agencies").select("*", { count: "exact", head: true }).in("discipline", d.filter)
+    ),
   ]);
 
   const hasActivity =
@@ -118,7 +129,7 @@ export default async function LandingPage() {
         <div className="relative border-t border-slate-800">
           <div className="page-container py-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <AnimatedStat value={agencyCount ?? 66000} suffix="+" label="Agencies indexed" />
+              <AnimatedStat value={agencyCount ?? 46000} suffix="+" label="Agencies indexed" />
               <AnimatedStat value={reviewCount ?? 0} suffix="" label="Anonymous reviews" />
               <AnimatedStat value={threadCount ?? 0} suffix="" label="Forum discussions" />
               <AnimatedStat value={100} suffix="%" label="Anonymous by design" />
@@ -261,7 +272,7 @@ export default async function LandingPage() {
           <p className="text-slate-500 max-w-lg mx-auto">See what your peers are really saying — ratings, reviews, and open jobs at every department.</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {DISCIPLINES.map((d) => (
+          {DISCIPLINES.map((d, i) => (
             <Link
               key={d.label}
               href={d.href}
@@ -269,7 +280,7 @@ export default async function LandingPage() {
             >
               <div className="text-4xl mb-3">{d.emoji}</div>
               <div className="font-bold text-slate-900 group-hover:text-red-600 transition-colors mb-1">{d.label}</div>
-              <div className="text-sm text-slate-500">{d.count} agencies</div>
+              <div className="text-sm text-slate-500">{countLabel(disciplineCounts[i]?.count ?? 0)}</div>
               <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-400 transition-colors mt-3" />
             </Link>
           ))}
@@ -311,7 +322,7 @@ export default async function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {[
             { step: "01", title: "Sign up anonymously", desc: "Use any email — a burner works great. We verify you're human, then generate a random alias. Your email is encrypted and never shared." },
-            { step: "02", title: "Find your department", desc: "Search from 66,000+ indexed US public safety agencies. Police precincts, fire houses, EMS services, dispatch centers, and more." },
+            { step: "02", title: "Find your department", desc: "Search from 46,000+ indexed US public safety agencies. Police precincts, fire houses, EMS services, dispatch centers, and more." },
             { step: "03", title: "Review & connect", desc: "Rate your department, post in the forum, browse jobs. Every post is linked to your alias — not your identity." },
           ].map((s) => (
             <div key={s.step} className="text-center group">

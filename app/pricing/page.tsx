@@ -11,7 +11,7 @@ const INDIVIDUAL_TIERS = [
     cta: "Get Started",
     ctaHref: "/signup",
     features: [
-      "Browse all 66,000+ agencies",
+      "Browse all 46,000+ agencies",
       "Read all reviews & forum posts",
       "Post reviews (verified only)",
       "Community forum access",
