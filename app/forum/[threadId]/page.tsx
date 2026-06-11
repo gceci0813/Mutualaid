@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ThumbsUp, MessageSquare, Pin } from "lucide-react";
 import CommentSection from "./CommentSection";
+import ThreadUpvoteButton from "./ThreadUpvoteButton";
 import type { Thread, Comment } from "@/types";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -90,10 +91,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
           <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-base">{t.body}</p>
 
           <div className="flex items-center gap-4 mt-5 pt-5 border-t border-slate-100 text-sm text-slate-500">
-            <button className="flex items-center gap-1.5 hover:text-slate-700 hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors font-medium">
-              <ThumbsUp className="w-4 h-4" />
-              {t.upvotes} upvote{t.upvotes !== 1 ? "s" : ""}
-            </button>
+            <ThreadUpvoteButton threadId={t.id} initialUpvotes={t.upvotes} />
             <span className="flex items-center gap-1.5 text-slate-400">
               <MessageSquare className="w-4 h-4" />
               {t.comment_count} comment{t.comment_count !== 1 ? "s" : ""}

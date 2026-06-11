@@ -20,12 +20,15 @@ function timeAgo(dateStr: string): string {
 function CommentCard({
   comment,
   onReply,
+  onUpvote,
   depth = 0,
 }: {
-  comment: Comment & { replies?: Comment[] };
+  comment: Comment & { replies?: Comment[]; localUpvotes?: number; upvoted?: boolean };
   onReply: (parentId: string, alias: string) => void;
+  onUpvote: (commentId: string) => void;
   depth?: number;
 }) {
+  const displayUpvotes = comment.localUpvotes ?? comment.upvotes;
   return (
     <div className={cn("", depth > 0 && "ml-6 border-l-2 border-slate-100 pl-4")}>
       <div className="py-3">
@@ -36,9 +39,15 @@ function CommentCard({
         </div>
         <p className="text-sm text-slate-700 leading-relaxed">{comment.body}</p>
         <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-          <button className="flex items-center gap-1 hover:text-slate-600 transition-colors">
-            <ThumbsUp className="w-3 h-3" />
-            {comment.upvotes}
+          <button
+            className={cn(
+              "flex items-center gap-1 transition-colors",
+              comment.upvoted ? "text-red-500 font-semibold" : "hover:text-slate-600"
+            )}
+            onClick={() => onUpvote(comment.id)}
+          >
+            <ThumbsUp className={cn("w-3 h-3", comment.upvoted && "fill-red-500 text-red-500")} />
+            {displayUpvotes}
           </button>
           <button
             className="flex items-center gap-1 hover:text-red-600 transition-colors"
@@ -50,11 +59,13 @@ function CommentCard({
         </div>
       </div>
       {comment.replies?.map((reply) => (
-        <CommentCard key={reply.id} comment={reply} onReply={onReply} depth={depth + 1} />
+        <CommentCard key={reply.id} comment={reply} onReply={onReply} onUpvote={onUpvote} depth={depth + 1} />
       ))}
     </div>
   );
 }
+
+type CommentWithMeta = Comment & { localUpvotes?: number; upvoted?: boolean };
 
 export default function CommentSection({
   threadId,
@@ -63,11 +74,45 @@ export default function CommentSection({
   threadId: string;
   initialComments: Comment[];
 }) {
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [comments, setComments] = useState<CommentWithMeta[]>(initialComments);
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: string; alias: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  async function handleCommentUpvote(commentId: string) {
+    // Optimistic update
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? { ...c, localUpvotes: (c.localUpvotes ?? c.upvotes) + (c.upvoted ? -1 : 1), upvoted: !c.upvoted }
+          : c
+      )
+    );
+
+    try {
+      const res = await fetch(`/api/comments/${commentId}/upvote`, { method: "POST" });
+      if (!res.ok) {
+        // Revert on failure
+        setComments((prev) =>
+          prev.map((c) =>
+            c.id === commentId
+              ? { ...c, localUpvotes: (c.localUpvotes ?? c.upvotes) - (c.upvoted ? -1 : 1), upvoted: !c.upvoted }
+              : c
+          )
+        );
+      }
+    } catch {
+      // Network error — silently revert
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? { ...c, localUpvotes: c.upvotes, upvoted: false }
+            : c
+        )
+      );
+    }
+  }
 
   // Build tree
   const topLevel = comments.filter((c) => !c.parent_id);
@@ -168,6 +213,7 @@ export default function CommentSection({
               key={c.id}
               comment={c}
               onReply={(id, alias) => setReplyTo({ id, alias })}
+              onUpvote={handleCommentUpvote}
             />
           ))}
         </div>
