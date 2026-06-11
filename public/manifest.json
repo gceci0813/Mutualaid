@@ -1,0 +1,31 @@
+{
+  "name": "MutualAid — First Responder Community",
+  "short_name": "MutualAid",
+  "description": "Anonymous reviews, salary data, and jobs for police, fire, EMS, and public safety.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#dc2626",
+  "orientation": "portrait-primary",
+  "categories": ["social", "careers"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Browse Agencies", "url": "/agencies", "description": "Search and review agencies" },
+    { "name": "Forum", "url": "/forum", "description": "Community discussions" },
+    { "name": "Job Board", "url": "/jobs", "description": "Open positions" },
+    { "name": "Salary Data", "url": "/salary", "description": "First responder salaries" }
+  ]
+}

@@ -7,6 +7,22 @@ import {
 } from "lucide-react";
 import { cn, DISCIPLINE_LABELS, DISCIPLINE_COLORS, formatSalary } from "@/lib/utils";
 import type { Job } from "@/types";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase.from("jobs").select("title, description, agencies(name, city, state_abbr)").eq("id", id).single();
+  if (!data) return {};
+  const agency = data.agencies as unknown as { name: string; city: string; state_abbr: string } | null;
+  const title = `${data.title}${agency ? ` — ${agency.name}` : ""}`;
+  const description = `${data.title} position at ${agency?.name ?? "a public safety agency"} in ${agency?.city ?? ""}, ${agency?.state_abbr ?? ""}. Apply now on MutualAid.`;
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
+}
 
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -30,9 +46,41 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
     return `${Math.floor(days / 7)}w ago`;
   }
 
+  // JobPosting JSON-LD
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: job.title,
+    description: job.description,
+    datePosted: job.created_at,
+    ...(job.deadline && { validThrough: job.deadline }),
+    employmentType: job.employment_type === "full_time" ? "FULL_TIME"
+      : job.employment_type === "part_time" ? "PART_TIME"
+      : job.employment_type === "volunteer" ? "VOLUNTEER"
+      : "OTHER",
+    hiringOrganization: { "@type": "Organization", name: agency.name, ...(agency.website && { sameAs: agency.website }) },
+    jobLocation: {
+      "@type": "Place",
+      address: { "@type": "PostalAddress", addressLocality: agency.city, addressRegion: agency.state_abbr, addressCountry: "US" },
+    },
+    ...(job.salary_min && {
+      baseSalary: {
+        "@type": "MonetaryAmount",
+        currency: "USD",
+        value: {
+          "@type": "QuantitativeValue",
+          minValue: job.salary_type === "hourly" ? job.salary_min * 2080 : job.salary_min,
+          ...(job.salary_max && { maxValue: job.salary_type === "hourly" ? job.salary_max * 2080 : job.salary_max }),
+          unitText: "YEAR",
+        },
+      },
+    }),
+  };
+
   return (
     <>
-      {/* Dark page header */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {/* Light page header */}
       <div className="page-header">
         <div className="page-header-inner">
           <Link href="/jobs"

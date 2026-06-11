@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { cn, DISCIPLINE_LABELS, DISCIPLINE_COLORS } from "@/lib/utils";
 import type { Agency, Review } from "@/types";
+import type { Metadata } from "next";
 
 interface ReviewWithVerified extends Review {
   is_verified_officer: boolean;
@@ -57,6 +58,20 @@ function StarDisplay({ rating, size = "sm" }: { rating: number; size?: "sm" | "l
   );
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const agency = await getAgency(slug);
+  if (!agency) return {};
+  const title = `${agency.name} Reviews, Salary & Jobs`;
+  const description = `Anonymous reviews, salary data, and open positions at ${agency.name} in ${agency.city}, ${agency.state}. Written by verified ${DISCIPLINE_LABELS[agency.discipline].toLowerCase()} officers.`;
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "website" },
+    twitter: { card: "summary", title, description },
+  };
+}
+
 export default async function AgencyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const [agency, reviews] = await Promise.all([
@@ -79,9 +94,36 @@ export default async function AgencyPage({ params }: { params: Promise<{ slug: s
       }
     : null;
 
+  // JSON-LD structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: agency.name,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: agency.city,
+      addressRegion: agency.state_abbr,
+      addressCountry: "US",
+    },
+    ...(agency.website && { url: agency.website }),
+    ...(ratings && reviews.length > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: ratings.overall.toFixed(1),
+        reviewCount: reviews.length,
+        bestRating: "5",
+        worstRating: "1",
+      },
+    }),
+  };
+
   return (
     <>
-      {/* Dark page header */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {/* Light page header */}
       <div className="page-header">
         <div className="page-header-inner">
           {/* Breadcrumb */}

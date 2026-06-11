@@ -16,10 +16,22 @@ const NAV_LINKS = [
       { label: "Fire Departments", href: "/agencies?discipline=fire" },
       { label: "EMS / Ambulance", href: "/agencies?discipline=ems" },
       { label: "Dispatch / 911", href: "/agencies?discipline=dispatch" },
+      { label: "Compare Agencies", href: "/compare" },
     ],
   },
   { label: "Forum", href: "/forum" },
   { label: "Jobs", href: "/jobs" },
+  {
+    label: "Salary",
+    href: "/salary",
+    children: [
+      { label: "Salary Explorer", href: "/salary" },
+      { label: "Compare Agencies", href: "/compare" },
+      { label: "Law Enforcement Pay", href: "/agencies?discipline=police" },
+      { label: "Fire Dept. Pay", href: "/agencies?discipline=fire" },
+      { label: "EMS Pay", href: "/agencies?discipline=ems" },
+    ],
+  },
   { label: "Pricing", href: "/pricing" },
 ];
 
