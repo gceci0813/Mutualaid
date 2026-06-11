@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 const DISCIPLINE_EMOJIS: Partial<Record<DisciplineType, string>> = {
-  police: "👮", fire: "🚒", ems: "🚑", dispatch: "📡", dpw: "🚧", corrections: "🔒",
+  police: "👮", fire: "🚒", ems: "🚑", dispatch: "📡", corrections: "🔒",
 };
 
 type TopAgency = {
@@ -23,7 +23,7 @@ type TopAgency = {
 export default async function RankingsPage() {
   const supabase = await createClient();
 
-  const DISCIPLINES: DisciplineType[] = ["police", "fire", "ems", "dispatch", "dpw", "corrections"];
+  const DISCIPLINES: DisciplineType[] = ["police", "fire", "ems", "dispatch", "corrections"];
 
   // Fetch top agency per discipline
   const disciplineLeaders = await Promise.all(

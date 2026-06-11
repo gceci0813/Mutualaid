@@ -13,7 +13,6 @@ const TABS: { value: DisciplineType | "" | "federal"; label: string; emoji: stri
   { value: "fire",       label: "Fire",         emoji: "🚒" },
   { value: "police",     label: "Police / PD",  emoji: "👮" },
   { value: "ems",        label: "EMS",          emoji: "🚑" },
-  { value: "dpw",        label: "Public Works", emoji: "🚧" },
   { value: "federal",    label: "Federal",      emoji: "🏛️" },
   { value: "dispatch",   label: "Dispatch",     emoji: "📡" },
   { value: "corrections",label: "Corrections",  emoji: "🔒" },

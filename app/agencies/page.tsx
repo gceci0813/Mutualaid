@@ -19,7 +19,7 @@ export default function AgenciesPage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-3 tracking-tight">Browse Agencies</h1>
           <p className="text-slate-500 text-lg max-w-xl">
-            Search 46,000+ public safety agencies across the United States. See ratings, reviews, and open positions.
+            Search 59,000+ public safety agencies across the United States. See ratings, reviews, and open positions.
           </p>
         </div>
       </div>

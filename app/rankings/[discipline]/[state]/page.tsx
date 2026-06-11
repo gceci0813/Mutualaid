@@ -6,7 +6,7 @@ import { cn, DISCIPLINE_LABELS, US_STATES } from "@/lib/utils";
 import type { DisciplineType } from "@/types";
 import type { Metadata } from "next";
 
-const DISCIPLINES: DisciplineType[] = ["police", "fire", "ems", "dispatch", "dpw", "corrections"];
+const DISCIPLINES: DisciplineType[] = ["police", "fire", "ems", "dispatch", "corrections"];
 
 export async function generateMetadata({
   params,

@@ -86,7 +86,7 @@ export default async function OpenGraphImage() {
 
         {/* Footer strip */}
         <div style={{ display: "flex", alignItems: "center", gap: 32, fontSize: 24, color: "#64748b" }}>
-          <span>46,000+ agencies</span>
+          <span>59,000+ agencies</span>
           <span style={{ color: "#334155" }}>·</span>
           <span>100% anonymous</span>
           <span style={{ color: "#334155" }}>·</span>

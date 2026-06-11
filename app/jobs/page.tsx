@@ -19,7 +19,7 @@ const EMPLOYMENT_TYPES = [
 const DISCIPLINES = [
   { value: "", label: "All Disciplines" }, { value: "police", label: "Law Enforcement" },
   { value: "fire", label: "Fire Department" }, { value: "ems", label: "EMS / Ambulance" },
-  { value: "dispatch", label: "Dispatch / 911" }, { value: "dpw", label: "Public Works" },
+  { value: "dispatch", label: "Dispatch / 911" },
   { value: "corrections", label: "Corrections" },
 ];
 

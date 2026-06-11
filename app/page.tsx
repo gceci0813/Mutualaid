@@ -17,7 +17,7 @@ const DISCIPLINES = [
   { label: "Fire Departments", emoji: "🚒", href: "/agencies?discipline=fire", filter: ["fire"], color: "from-red-900/40" },
   { label: "EMS / Ambulance", emoji: "🚑", href: "/agencies?discipline=ems", filter: ["ems"], color: "from-orange-900/40" },
   { label: "Dispatch / 911", emoji: "📡", href: "/agencies?discipline=dispatch", filter: ["dispatch"], color: "from-yellow-900/40" },
-  { label: "Public Works", emoji: "🔧", href: "/agencies?discipline=dpw", filter: ["dpw"], color: "from-green-900/40" },
+  { label: "Corrections", emoji: "🔒", href: "/agencies?discipline=corrections", filter: ["corrections"], color: "from-green-900/40" },
   { label: "Federal (FBI/DHS)", emoji: "🏛️", href: "/agencies?discipline=fbi", filter: ["fbi", "dhs"], color: "from-purple-900/40" },
 ];
 
@@ -129,7 +129,7 @@ export default async function LandingPage() {
         <div className="relative border-t border-slate-800">
           <div className="page-container py-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <AnimatedStat value={agencyCount ?? 46000} suffix="+" label="Agencies indexed" />
+              <AnimatedStat value={agencyCount ?? 59000} suffix="+" label="Agencies indexed" />
               <AnimatedStat value={reviewCount ?? 0} suffix="" label="Anonymous reviews" />
               <AnimatedStat value={threadCount ?? 0} suffix="" label="Forum discussions" />
               <AnimatedStat value={100} suffix="%" label="Anonymous by design" />
@@ -322,7 +322,7 @@ export default async function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {[
             { step: "01", title: "Sign up anonymously", desc: "Use any email — a burner works great. We verify you're human, then generate a random alias. Your email is encrypted and never shared." },
-            { step: "02", title: "Find your department", desc: "Search from 46,000+ indexed US public safety agencies. Police precincts, fire houses, EMS services, dispatch centers, and more." },
+            { step: "02", title: "Find your department", desc: "Search from 59,000+ indexed US public safety agencies. Police precincts, fire houses, EMS services, dispatch centers, and more." },
             { step: "03", title: "Review & connect", desc: "Rate your department, post in the forum, browse jobs. Every post is linked to your alias — not your identity." },
           ].map((s) => (
             <div key={s.step} className="text-center group">

@@ -14,7 +14,6 @@ const DISCIPLINE_OPTIONS: { value: DisciplineType; label: string; emoji: string 
   { value: "ems", label: "EMS / Ambulance", emoji: "🚑" },
   { value: "dispatch", label: "Dispatch / 911", emoji: "📡" },
   { value: "corrections", label: "Corrections", emoji: "🔒" },
-  { value: "dpw", label: "Public Works", emoji: "🚧" },
   { value: "fbi", label: "Federal (FBI)", emoji: "🏛️" },
   { value: "other", label: "Other", emoji: "🛡️" },
 ];

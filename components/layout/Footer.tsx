@@ -13,7 +13,7 @@ const DISCIPLINE_LINKS = [
   { href: "/agencies?discipline=fire",   label: "Fire Departments" },
   { href: "/agencies?discipline=ems",    label: "EMS / Ambulance" },
   { href: "/agencies?discipline=dispatch", label: "Dispatch / 911" },
-  { href: "/agencies?discipline=dpw",    label: "Public Works" },
+  { href: "/agencies?discipline=corrections", label: "Corrections" },
 ];
 
 const LEGAL_LINKS = [

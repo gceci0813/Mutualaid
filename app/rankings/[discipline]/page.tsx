@@ -6,14 +6,13 @@ import { cn, DISCIPLINE_LABELS, DISCIPLINE_COLORS, US_STATES } from "@/lib/utils
 import type { DisciplineType } from "@/types";
 import type { Metadata } from "next";
 
-const DISCIPLINES: DisciplineType[] = ["police", "fire", "ems", "dispatch", "dpw", "corrections"];
+const DISCIPLINES: DisciplineType[] = ["police", "fire", "ems", "dispatch", "corrections"];
 
 const DISCIPLINE_DESCRIPTIONS: Partial<Record<DisciplineType, string>> = {
   police: "law enforcement agencies and police departments",
   fire: "fire departments and fire rescue services",
   ems: "EMS services, ambulance corps, and emergency medical agencies",
   dispatch: "911 dispatch centers and public safety communications",
-  dpw: "public works and municipal services agencies",
   corrections: "correctional facilities and detention agencies",
 };
 

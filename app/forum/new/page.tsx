@@ -27,7 +27,6 @@ const DISCIPLINES = [
   { value: "fire", label: "Fire" },
   { value: "ems", label: "EMS" },
   { value: "dispatch", label: "Dispatch" },
-  { value: "dpw", label: "Public Works" },
   { value: "fbi", label: "FBI" },
   { value: "dhs", label: "DHS" },
   { value: "corrections", label: "Corrections" },

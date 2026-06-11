@@ -13,7 +13,6 @@ const DISCIPLINES = [
   { value: "fire", label: "Fire Department" },
   { value: "ems", label: "EMS / Ambulance" },
   { value: "dispatch", label: "Dispatch / 911" },
-  { value: "dpw", label: "Public Works" },
   { value: "corrections", label: "Corrections" },
 ];
 
